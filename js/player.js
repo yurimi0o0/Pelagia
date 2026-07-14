@@ -11,6 +11,8 @@ Game.player = {
   sway: 0,
   shotTimer: 0,
   missFlashTimer: 0,
+  dragAnchorX: 0,
+  dragAnchorY: 0,
 };
 
 Game.player.init = function init() {
@@ -26,13 +28,33 @@ Game.player.init = function init() {
   p.missFlashTimer = 0;
 };
 
-Game.player.setTargetFromPointer = function setTargetFromPointer(worldX, worldY) {
+// 自機の現在位置(x,y)基準の「掴める範囲」。判定円の少し上〜足元の少し下まで。
+// ここに触れた時だけドラッグ開始できる(タップでその場に飛ぶ操作は廃止)。
+Game.player.isPointInGrabZone = function isPointInGrabZone(worldX, worldY) {
+  const cfg = Game.CONFIG.player;
+  const p = Game.player;
+  const left = p.x - cfg.spriteWidth / 2 - cfg.grabPaddingX;
+  const right = p.x + cfg.spriteWidth / 2 + cfg.grabPaddingX;
+  const top = p.y + cfg.hitOffsetY - cfg.grabTopPadding;
+  const bottom = p.y + cfg.spriteHeight / 2 + cfg.grabBottomPadding;
+  return worldX >= left && worldX <= right && worldY >= top && worldY <= bottom;
+};
+
+// 掴んだ瞬間の指と自機の相対位置(アンカー)を覚えておく。以後はこのオフセットを保ったまま
+// 指に追従させるので、ドラッグ開始時に自機がその場から動かない(=タップで飛ばない)。
+Game.player.beginDrag = function beginDrag(worldX, worldY) {
+  const p = Game.player;
+  p.dragAnchorX = worldX - p.x;
+  p.dragAnchorY = worldY - p.y;
+};
+
+Game.player.dragTo = function dragTo(worldX, worldY) {
   const cfg = Game.CONFIG.player;
   const p = Game.player;
   const halfW = cfg.spriteWidth / 2;
   const halfH = cfg.spriteHeight / 2;
-  p.targetX = Game.clamp(worldX, halfW, Game.CONFIG.world.width - halfW);
-  p.targetY = Game.clamp(worldY - cfg.pointerOffsetY, halfH, Game.CONFIG.world.height - halfH);
+  p.targetX = Game.clamp(worldX - p.dragAnchorX, halfW, Game.CONFIG.world.width - halfW);
+  p.targetY = Game.clamp(worldY - p.dragAnchorY, halfH, Game.CONFIG.world.height - halfH);
 };
 
 // ステップAの簡易ミス処理：点滅させつつ中央へ戻すだけ。残機/無敵時間の本実装はステップD。

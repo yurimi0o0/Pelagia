@@ -63,12 +63,13 @@ Game.advanceDialogue = function advanceDialogue() {
     ctx.fillStyle = "rgba(4, 6, 12, 0.35)";
     ctx.fillRect(0, 0, w.width, w.height);
 
-    // 話者の立ち絵(ボス勢のみ用意がある)。自機側の台詞では簡略化のため出さない。
+    // 話者の立ち絵(会話専用にお腹より上でクロップしたもの。ボス勢のみ用意がある)。
+    // 自機側の台詞では簡略化のため出さない。
     const portraitKey = Game.SPEAKER_PORTRAITS[line.speaker];
-    const portrait = portraitKey && Game.assets.bosses[portraitKey];
+    const portrait = portraitKey && Game.assets.portraits[portraitKey];
     if (portrait && portrait.ready) {
       const img = portrait.image;
-      const ph = 240;
+      const ph = 220;
       const pw = ph * (img.width / img.height);
       ctx.globalAlpha = 0.96;
       ctx.drawImage(img, w.width - pw + 30, 150, pw, ph);

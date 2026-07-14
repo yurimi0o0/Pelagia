@@ -51,18 +51,31 @@ Game.updateEnemyBullets = function updateEnemyBullets(dt) {
   });
 };
 
+// 淡い水色背景に負けないよう、暗い縁取り+白いハイライト芯を必ず付ける
+// (色そのものはパターンごとに違っても、輪郭とハイライトで視認性を底上げする)。
 Game.drawEnemyBullets = function drawEnemyBullets(ctx) {
   const cfg = Game.CONFIG.enemyBullet;
   ctx.save();
   Game.enemyBullets.forEachActive((b) => {
+    const color = b.color || cfg.color;
+    const glowColor = b.glowColor || cfg.glowColor;
+
     ctx.beginPath();
-    ctx.fillStyle = b.glowColor || cfg.glowColor;
-    ctx.arc(b.x, b.y, b.radius * 2, 0, Math.PI * 2);
+    ctx.fillStyle = glowColor;
+    ctx.arc(b.x, b.y, b.radius * 2.1, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.fillStyle = b.color || cfg.color;
+    ctx.fillStyle = color;
     ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(20, 22, 36, 0.55)";
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.arc(b.x, b.y, b.radius * 0.4, 0, Math.PI * 2);
     ctx.fill();
   });
   ctx.restore();

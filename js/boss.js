@@ -5,9 +5,9 @@ Game.BOSS_DEFS = {
   lena: {
     name: "レーナ",
     sprite: "assets/boss_lena.png",
-    spriteWidth: 101,
-    spriteHeight: 128,
-    radius: 34,
+    spriteWidth: 127,
+    spriteHeight: 130,
+    radius: 40,
     hp: 150,
     // 台詞はPELAGIA設定資料のレーナの口癖/決め台詞から。
     dialogue: {
@@ -38,9 +38,9 @@ Game.BOSS_DEFS = {
   rione: {
     name: "リオネ",
     sprite: "assets/boss_rione.png",
-    spriteWidth: 127,
-    spriteHeight: 130,
-    radius: 40,
+    spriteWidth: 101,
+    spriteHeight: 128,
+    radius: 34,
     hp: 600,
     // 台詞はPELAGIA設定資料のリオネの口癖/決め台詞から。
     dialogue: {

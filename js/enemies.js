@@ -17,7 +17,8 @@ Game.ENEMY_DEFS = {
     hp: 5,
     radius: 12,
     score: Game.CONFIG.score.fishGrunt,
-    shot: { interval: 1.6, speed: 130, radius: 3.5, color: "rgba(200, 225, 255, 0.9)", glowColor: "rgba(200, 225, 255, 0.4)" },
+    // 元は淡い水色で背景に埋もれていたため、暖色寄りの高コントラストな色に変更。
+    shot: { interval: 1.6, speed: 130, radius: 4.5, color: "rgba(255, 150, 90, 0.95)", glowColor: "rgba(255, 180, 130, 0.45)" },
   },
 };
 

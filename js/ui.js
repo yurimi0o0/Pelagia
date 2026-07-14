@@ -1,14 +1,24 @@
-// メニュー/HUD/ボスHPバーの描画とタップ判定。ワールド座標(360x640)固定でレイアウトする。
+// メニュー/HUD/ボスHPバー/リザルトの描画とタップ判定。ワールド座標(360x640)固定でレイアウトする。
 // 神話的な雰囲気にするため、セリフ体＋金/真珠色のアクセントと、
 // 石版のような二重枠+四隅の金具で装飾する（drawTabletFrame）。
 (function () {
   const RECTS = {
-    stage1Button: { x: 90, y: 300, w: 180, h: 60 },
+    storyButton: { x: 70, y: 356, w: 220, h: 56 },
+    practiceButton: { x: 70, y: 426, w: 220, h: 56 },
+
     backToTitle: { x: 16, y: 16, w: 90, h: 30 },
+    stageSlot1: { x: 40, y: 150, w: 280, h: 74 },
+    stageSlot2: { x: 40, y: 236, w: 280, h: 74 },
+    stageSlot3: { x: 40, y: 322, w: 280, h: 74 },
+
     resume: { x: 90, y: 330, w: 180, h: 50 },
     quitToTitle: { x: 90, y: 396, w: 180, h: 50 },
+
     retry: { x: 90, y: 360, w: 180, h: 50 },
     toTitle: { x: 90, y: 426, w: 180, h: 50 },
+
+    resultToTitle: { x: 40, y: 486, w: 130, h: 46 },
+    resultToStageSelect: { x: 190, y: 486, w: 130, h: 46 },
   };
 
   function hitRect(x, y, rect) {
@@ -23,6 +33,10 @@
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
+  }
+
+  function toRoman(n) {
+    return ["", "I", "II", "III"][n] || String(n);
   }
 
   // 石版風の二重枠＋四隅の金具。ボタン/パネルはすべてこの上にテキストを乗せる。
@@ -124,46 +138,75 @@
     ctx.fillRect(0, 0, w.width, w.height);
   }
 
+  function drawStageSlot(ctx, rect, entry) {
+    const ui = Game.CONFIG.ui;
+    const cleared = entry.number <= Game.saveData.clearedThrough;
+    const playable = entry.implemented && cleared;
+
+    ctx.save();
+    if (!playable) ctx.globalAlpha = 0.55;
+    drawTabletFrame(ctx, rect);
+
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = playable ? ui.accentGoldBright : ui.dimTextColor;
+    ctx.font = `700 18px ${ui.titleFont}`;
+    ctx.fillText(`STAGE ${toRoman(entry.number)}`, rect.x + 18, rect.y + 30);
+
+    ctx.fillStyle = playable ? ui.subTextColor : ui.dimTextColor;
+    ctx.font = `400 13px ${ui.bodyFont}`;
+    ctx.fillText(entry.implemented ? entry.name : "???", rect.x + 18, rect.y + 50);
+
+    ctx.textAlign = "right";
+    ctx.font = `600 12px ${ui.bodyFont}`;
+    if (!entry.implemented) {
+      ctx.fillStyle = ui.dimTextColor;
+      ctx.fillText("COMING SOON", rect.x + rect.w - 16, rect.y + 30);
+    } else if (!cleared) {
+      ctx.fillStyle = ui.dimTextColor;
+      ctx.fillText("本編クリアで解放", rect.x + rect.w - 16, rect.y + 30);
+    } else {
+      const best = Game.saveData.highScores[String(entry.number)] || 0;
+      ctx.fillStyle = ui.accentGold;
+      ctx.fillText(`BEST ${best.toLocaleString()}`, rect.x + rect.w - 16, rect.y + 30);
+    }
+    ctx.restore();
+  }
+
   Game.drawTitle = function drawTitle(ctx) {
     const w = Game.CONFIG.world;
     const ui = Game.CONFIG.ui;
     ctx.save();
     drawDim(ctx, "rgba(6, 10, 20, 0.42)");
 
-    drawGlowTitle(ctx, "PELAGIA", w.width / 2, 250, 48);
-    drawDivider(ctx, w.width / 2, 278, 200);
+    drawGlowTitle(ctx, "PELAGIA", w.width / 2, 232, 44);
+    drawDivider(ctx, w.width / 2, 258, 190);
 
     ctx.textAlign = "center";
     ctx.font = `italic 400 14px ${ui.bodyFont}`;
     ctx.fillStyle = ui.subTextColor;
-    ctx.fillText("— 海神たちの眠る聖域 —", w.width / 2, 302);
+    ctx.fillText("— 海神たちの眠る聖域 —", w.width / 2, 282);
 
-    if (Math.floor(performance.now() / 500) % 2 === 0) {
-      ctx.font = `600 15px ${ui.bodyFont}`;
-      ctx.fillStyle = ui.accentGold;
-      ctx.fillText("TAP TO BEGIN", w.width / 2, 430);
-    }
+    drawButton(ctx, RECTS.storyButton, "通しプレイ");
+    drawButton(ctx, RECTS.practiceButton, "面選択（練習）");
+
+    ctx.font = `400 11px ${ui.bodyFont}`;
+    ctx.fillStyle = ui.subTextColor;
+    ctx.fillText("面選択ではクリア済みの海域に挑めます", w.width / 2, 512);
     ctx.restore();
   };
 
   Game.drawStageSelect = function drawStageSelect(ctx) {
     const w = Game.CONFIG.world;
-    const ui = Game.CONFIG.ui;
     ctx.save();
     drawDim(ctx, "rgba(6, 10, 20, 0.42)");
 
-    drawGlowTitle(ctx, "STAGE SELECT", w.width / 2, 108, 22);
-    drawDivider(ctx, w.width / 2, 128, 160);
+    drawGlowTitle(ctx, "STAGE SELECT", w.width / 2, 96, 22);
+    drawDivider(ctx, w.width / 2, 116, 150);
 
-    drawTabletFrame(ctx, RECTS.stage1Button);
-    ctx.textAlign = "center";
-    ctx.fillStyle = ui.accentGoldBright;
-    ctx.font = `700 20px ${ui.titleFont}`;
-    ctx.textBaseline = "alphabetic";
-    ctx.fillText("STAGE I", RECTS.stage1Button.x + RECTS.stage1Button.w / 2, RECTS.stage1Button.y + 32);
-    ctx.fillStyle = ui.subTextColor;
-    ctx.font = `400 12px ${ui.bodyFont}`;
-    ctx.fillText("深海の回廊", RECTS.stage1Button.x + RECTS.stage1Button.w / 2, RECTS.stage1Button.y + 49);
+    Game.STAGE_ROSTER.forEach((entry, i) => {
+      drawStageSlot(ctx, RECTS[`stageSlot${i + 1}`], entry);
+    });
 
     drawButton(ctx, RECTS.backToTitle, "戻る", 12);
     ctx.restore();
@@ -171,9 +214,8 @@
 
   Game.drawPauseOverlay = function drawPauseOverlay(ctx) {
     const w = Game.CONFIG.world;
-    const ui = Game.CONFIG.ui;
     ctx.save();
-    drawDim(ctx, ui.overlayFill);
+    drawDim(ctx, Game.CONFIG.ui.overlayFill);
 
     drawGlowTitle(ctx, "PAUSED", w.width / 2, 262, 28);
     drawDivider(ctx, w.width / 2, 282, 140);
@@ -195,7 +237,7 @@
     ctx.textAlign = "center";
     ctx.font = `italic 400 15px ${ui.bodyFont}`;
     ctx.fillStyle = ui.subTextColor;
-    ctx.fillText(`SCORE ${Game.score}`, w.width / 2, 288);
+    ctx.fillText(`SCORE ${Game.score.toLocaleString()}`, w.width / 2, 288);
 
     drawButton(ctx, RECTS.retry, "リトライ");
     drawButton(ctx, RECTS.toTitle, "タイトルへ");
@@ -205,18 +247,72 @@
   Game.drawStageClear = function drawStageClear(ctx) {
     const w = Game.CONFIG.world;
     const ui = Game.CONFIG.ui;
+    const result = Game.lastResult || {
+      score: Game.score,
+      breakdown: Game.scoreBreakdown,
+      isNewBest: false,
+      bestScore: Game.score,
+      runMode: Game.runMode,
+    };
+
     ctx.save();
     drawDim(ctx, ui.overlayFill);
 
-    drawGlowTitle(ctx, "STAGE CLEAR", w.width / 2, 244, 26);
-    drawDivider(ctx, w.width / 2, 264, 140);
+    drawGlowTitle(ctx, "STAGE CLEAR", w.width / 2, 104, 26);
+    drawDivider(ctx, w.width / 2, 124, 150);
+
+    const rows = [
+      ["撃破スコア", result.breakdown.kills],
+      ["中ボス討伐", result.breakdown.miniboss],
+      ["ボス討伐", result.breakdown.boss],
+      ["クリアボーナス", result.breakdown.clearBonus],
+      ["ノーミスボーナス", result.breakdown.noMissBonus],
+    ];
+
+    const panelX = 40;
+    const panelY = 156;
+    const panelW = 280;
+    ctx.font = `400 13px ${ui.bodyFont}`;
+    rows.forEach(([label, value], i) => {
+      const y = panelY + i * 22;
+      ctx.textAlign = "left";
+      ctx.fillStyle = ui.subTextColor;
+      ctx.fillText(label, panelX, y);
+      ctx.textAlign = "right";
+      ctx.fillStyle = value > 0 ? ui.textColor : ui.dimTextColor;
+      ctx.fillText(value.toLocaleString(), panelX + panelW, y);
+    });
+
+    const totalY = panelY + rows.length * 22 + 12;
+    ctx.strokeStyle = ui.accentGoldDim;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(panelX, totalY - 16);
+    ctx.lineTo(panelX + panelW, totalY - 16);
+    ctx.stroke();
+
+    ctx.textAlign = "left";
+    ctx.font = `700 19px ${ui.titleFont}`;
+    ctx.fillStyle = ui.accentGoldBright;
+    ctx.fillText("TOTAL", panelX, totalY + 6);
+    ctx.textAlign = "right";
+    ctx.fillText(result.score.toLocaleString(), panelX + panelW, totalY + 6);
 
     ctx.textAlign = "center";
-    ctx.font = `italic 400 15px ${ui.bodyFont}`;
-    ctx.fillStyle = ui.subTextColor;
-    ctx.fillText(`SCORE ${Game.score}`, w.width / 2, 288);
+    ctx.font = `italic 400 13px ${ui.bodyFont}`;
+    if (result.runMode === "PRACTICE") {
+      ctx.fillStyle = ui.subTextColor;
+      ctx.fillText("練習プレイ（記録には残りません）", w.width / 2, totalY + 34);
+    } else if (result.isNewBest) {
+      ctx.fillStyle = ui.accentGold;
+      ctx.fillText("自己ベスト更新！", w.width / 2, totalY + 34);
+    } else {
+      ctx.fillStyle = ui.subTextColor;
+      ctx.fillText(`自己ベスト ${result.bestScore.toLocaleString()}`, w.width / 2, totalY + 34);
+    }
 
-    drawButton(ctx, RECTS.toTitle, "タイトルへ");
+    drawButton(ctx, RECTS.resultToTitle, "タイトルへ", 14);
+    drawButton(ctx, RECTS.resultToStageSelect, "面選択へ", 14);
     ctx.restore();
   };
 
@@ -225,20 +321,20 @@
     ctx.save();
 
     // 背景の明るさに関わらずHUDが読めるよう、上部に薄い帯を敷く。
-    const vignette = ctx.createLinearGradient(0, 0, 0, 60);
-    vignette.addColorStop(0, "rgba(6, 10, 18, 0.42)");
+    const vignette = ctx.createLinearGradient(0, 0, 0, 46);
+    vignette.addColorStop(0, "rgba(6, 10, 18, 0.46)");
     vignette.addColorStop(1, "rgba(6, 10, 18, 0)");
     ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, Game.CONFIG.world.width, 60);
+    ctx.fillRect(0, 0, Game.CONFIG.world.width, 46);
 
-    ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
 
+    ctx.textAlign = "left";
     ctx.font = `600 11px ${ui.bodyFont}`;
     ctx.fillStyle = ui.subTextColor;
     ctx.fillText("LIFE", 14, 20);
     for (let i = 0; i < Game.lives; i += 1) {
-      const cx = 48 + i * 16;
+      const cx = 46 + i * 15;
       ctx.save();
       ctx.translate(cx, 16);
       ctx.rotate(Math.PI / 4);
@@ -247,9 +343,10 @@
       ctx.restore();
     }
 
-    ctx.font = `600 13px ${ui.bodyFont}`;
+    ctx.textAlign = "right";
+    ctx.font = `600 12px ${ui.bodyFont}`;
     ctx.fillStyle = ui.textColor;
-    ctx.fillText(`SCORE ${Game.score}`, 14, 38);
+    ctx.fillText(`SCORE ${Game.score.toLocaleString()}`, Game.CONFIG.ui.pauseButton.x - 12, 20);
 
     const pb = ui.pauseButton;
     drawTabletFrame(ctx, pb);
@@ -266,7 +363,7 @@
     const def = Game.BOSS_DEFS[boss.key];
     const ui = Game.CONFIG.ui;
     const barX = 20;
-    const barY = 56;
+    const barY = 50;
     const barW = 320;
     const barH = 9;
     const ratio = Math.max(boss.hp, 0) / boss.maxHp;
@@ -294,14 +391,35 @@
   Game.handleTap = function handleTap(x, y) {
     const S = Game.STATES;
 
+    if (Game.state === S.DIALOGUE) {
+      Game.advanceDialogue();
+      return;
+    }
+
     if (Game.state === S.TITLE) {
-      Game.setState(S.STAGE_SELECT);
+      if (hitRect(x, y, RECTS.storyButton)) {
+        Game.runMode = "STORY";
+        Game.startRun(1);
+      } else if (hitRect(x, y, RECTS.practiceButton)) {
+        Game.setState(S.STAGE_SELECT);
+      }
       return;
     }
 
     if (Game.state === S.STAGE_SELECT) {
-      if (hitRect(x, y, RECTS.stage1Button)) Game.startRun();
-      else if (hitRect(x, y, RECTS.backToTitle)) Game.setState(S.TITLE);
+      if (hitRect(x, y, RECTS.backToTitle)) {
+        Game.setState(S.TITLE);
+        return;
+      }
+      Game.STAGE_ROSTER.some((entry, i) => {
+        const rect = RECTS[`stageSlot${i + 1}`];
+        if (hitRect(x, y, rect) && entry.implemented && entry.number <= Game.saveData.clearedThrough) {
+          Game.runMode = "PRACTICE";
+          Game.startRun(entry.number);
+          return true;
+        }
+        return false;
+      });
       return;
     }
 
@@ -312,13 +430,14 @@
     }
 
     if (Game.state === S.GAME_OVER) {
-      if (hitRect(x, y, RECTS.retry)) Game.startRun();
+      if (hitRect(x, y, RECTS.retry)) Game.startRun(Game.currentStageNumber);
       else if (hitRect(x, y, RECTS.toTitle)) Game.setState(S.TITLE);
       return;
     }
 
     if (Game.state === S.STAGE_CLEAR) {
-      if (hitRect(x, y, RECTS.toTitle)) Game.setState(S.TITLE);
+      if (hitRect(x, y, RECTS.resultToTitle)) Game.setState(S.TITLE);
+      else if (hitRect(x, y, RECTS.resultToStageSelect)) Game.setState(S.STAGE_SELECT);
     }
   };
 })();

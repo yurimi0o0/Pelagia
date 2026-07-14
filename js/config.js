@@ -15,6 +15,8 @@ Game.CONFIG = {
     bossRione: "assets/boss_rione.png",
     enemyLenaGrunt: "assets/enemy_lena_grunt.png",
     enemyRioneGrunt: "assets/enemy_rione_grunt.png",
+    portraitLena: "assets/portrait_lena.png",
+    portraitRione: "assets/portrait_rione.png",
   },
 
   colors: {
@@ -37,7 +39,11 @@ Game.CONFIG = {
     spriteHeight: 112,
     startX: 180,
     startY: 500,
-    pointerOffsetY: 88,
+    // 自機をつかめる範囲(ワールド座標オフセット)。判定円の少し上から足元の少し下まで、
+    // タップではなくドラッグでしか動かせないようにするための「掴み判定」に使う。
+    grabPaddingX: 16,
+    grabTopPadding: 10,
+    grabBottomPadding: 16,
     followStrength: 14,
     maxTiltRad: 0.18,
     tiltResponsiveness: 10,
@@ -62,7 +68,7 @@ Game.CONFIG = {
 
   // 敵弾のデフォルト見た目。パターン個別に color/glowColor/radius を上書き可能(enemyBullets.js参照)。
   enemyBullet: {
-    radius: 4,
+    radius: 4.5,
     lifetime: 6,
     color: "rgba(255, 176, 214, 0.9)",
     glowColor: "rgba(255, 200, 230, 0.4)",
@@ -86,6 +92,8 @@ Game.CONFIG = {
     fishGrunt: 120,
     miniboss: 3000,
     boss: 10000,
+    clearBonus: 2000,
+    noMissBonus: 5000,
   },
 
   pool: {
@@ -108,6 +116,7 @@ Game.CONFIG = {
     buttonStroke: "rgba(227, 201, 138, 0.75)",
     overlayFill: "rgba(8, 10, 16, 0.62)",
     lifeColor: "rgba(248, 209, 140, 0.95)",
+    dimTextColor: "rgba(210, 210, 220, 0.42)",
   },
 
   debug: {

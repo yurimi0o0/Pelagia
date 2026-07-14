@@ -5,10 +5,20 @@ Game.BOSS_DEFS = {
   lena: {
     name: "レーナ",
     sprite: "assets/boss_lena.png",
-    spriteWidth: 101,
-    spriteHeight: 128,
-    radius: 34,
+    spriteWidth: 127,
+    spriteHeight: 130,
+    radius: 40,
     hp: 150,
+    // 台詞はPELAGIA設定資料のレーナの口癖/決め台詞から。
+    dialogue: {
+      beforeBattle: [
+        { speaker: "レーナ", text: "暇だね。そこの魚、遊びな。" },
+        { speaker: "ジェリー", text: "わ、私は魚じゃ…！" },
+      ],
+      afterDefeat: [
+        { speaker: "レーナ", text: "私が英傑なのは強いからだ。理屈なんかどうでもいい。" },
+      ],
+    },
     patterns: [
       {
         kind: "aimedRapid",
@@ -28,10 +38,21 @@ Game.BOSS_DEFS = {
   rione: {
     name: "リオネ",
     sprite: "assets/boss_rione.png",
-    spriteWidth: 127,
-    spriteHeight: 130,
-    radius: 40,
+    spriteWidth: 101,
+    spriteHeight: 128,
+    radius: 34,
     hp: 600,
+    // 台詞はPELAGIA設定資料のリオネの口癖/決め台詞から。
+    dialogue: {
+      beforeBattle: [
+        { speaker: "リオネ", text: "ここから先へ行って、生きて帰れるの？" },
+        { speaker: "ジェリー", text: "それでも、行かなきゃいけないの。" },
+      ],
+      afterDefeat: [
+        { speaker: "リオネ", text: "浅海のものを立ち入らせない。私はここで導く者であり続ける。" },
+        { speaker: "ジェリー", text: "ごめんね…でも、ありがとう。" },
+      ],
+    },
     patterns: [
       {
         kind: "rotatingRing",
@@ -163,6 +184,12 @@ Game.damageBoss = function damageBoss(boss, amount) {
     boss.alive = false;
     boss.defeated = true;
     boss.defeatTimer = Game.CONFIG.boss.defeatFlashDuration;
+    // 撃破演出(光の粒になって鎮まる)用に、飛び散る粒子の角度/速度/大きさを一度だけ決めておく。
+    boss.defeatSeed = Array.from({ length: 14 }, () => ({
+      angle: Math.random() * Math.PI * 2,
+      speed: 40 + Math.random() * 70,
+      size: 2 + Math.random() * 2.5,
+    }));
   }
 };
 
@@ -173,8 +200,15 @@ Game.updateBoss = function updateBoss(dt) {
   if (boss.defeated) {
     boss.defeatTimer -= dt;
     if (boss.defeatTimer <= 0) {
-      Game.score += boss.isMainBoss ? Game.CONFIG.score.boss : Game.CONFIG.score.miniboss;
+      // 世界観上「撃破=死亡」ではないため、ここでは消滅演出が終わっただけ扱い。
+      // 台詞(あれば)を挟んでから道中/クリアへ進む(stageRunnerがactiveBoss==nullを見て次フェーズへ進める)。
       Game.activeBoss = null;
+      Game.addScore(
+        boss.isMainBoss ? Game.CONFIG.score.boss : Game.CONFIG.score.miniboss,
+        boss.isMainBoss ? "boss" : "miniboss",
+      );
+      const def = Game.BOSS_DEFS[boss.key];
+      Game.startDialogue(def.dialogue && def.dialogue.afterDefeat, null);
     }
     return;
   }
@@ -212,14 +246,19 @@ Game.drawBoss = function drawBoss(ctx) {
   if (!boss) return;
   const def = Game.BOSS_DEFS[boss.key];
   const img = Game.assets.bosses[boss.key];
+  const defeatProgress = boss.defeated
+    ? 1 - boss.defeatTimer / Game.CONFIG.boss.defeatFlashDuration
+    : 0;
 
   ctx.save();
+  ctx.translate(boss.x, boss.y);
   if (boss.defeated) {
     const blinkOn = Math.floor(boss.defeatTimer / Game.CONFIG.boss.defeatFlashInterval) % 2 === 0;
-    ctx.globalAlpha = blinkOn ? 1 : 0.25;
+    ctx.globalAlpha = (blinkOn ? 1 : 0.3) * Math.max(0.15, 1 - defeatProgress * 0.6);
+    const scale = 1 - defeatProgress * 0.25;
+    ctx.scale(scale, scale);
   }
 
-  ctx.translate(boss.x, boss.y);
   if (img && img.ready) {
     ctx.drawImage(img.image, -def.spriteWidth / 2, -def.spriteHeight / 2, def.spriteWidth, def.spriteHeight);
   } else {
@@ -234,7 +273,32 @@ Game.drawBoss = function drawBoss(ctx) {
   }
   ctx.restore();
 
-  if (Game.CONFIG.debug.showEnemyHitCircle) {
+  // 撃破演出：戦闘終了の合図として、光の輪と粒子が静かに広がって消える(=消滅ではなく鎮まるイメージ)。
+  if (boss.defeated) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 1 - defeatProgress) * 0.8;
+    ctx.strokeStyle = "rgba(255, 244, 214, 0.9)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(boss.x, boss.y, boss.radius * (1 + defeatProgress * 3), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    boss.defeatSeed.forEach((p) => {
+      const dist = p.speed * defeatProgress;
+      const x = boss.x + Math.cos(p.angle) * dist;
+      const y = boss.y + Math.sin(p.angle) * dist;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - defeatProgress);
+      ctx.fillStyle = "rgba(255, 240, 210, 0.95)";
+      ctx.beginPath();
+      ctx.arc(x, y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  if (Game.CONFIG.debug.showEnemyHitCircle && !boss.defeated) {
     ctx.save();
     ctx.beginPath();
     ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";

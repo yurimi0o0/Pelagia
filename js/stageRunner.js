@@ -1,6 +1,11 @@
 // ステージ進行の汎用エンジン。stage.phases を順番に消化するだけなので、
 // 2面以降を足す時は phases のデータを増やすだけで済む（ロジック側の変更は不要な想定）。
 // phase.type: "waves"(時間経過で spawns を発火し、durationで次へ) / "miniboss" / "boss"(撃破で次へ)
+//
+// 会話(stage.dialogue.stageStart / BOSS_DEFS[key].dialogue.beforeBattle)は
+// DIALOGUE状態を経由させて先に流し切ってから本編を進める。DIALOGUE中は
+// game.jsのupdate()がPLAYING以外を素通りするため、このファイルのupdate系も
+// 自動的に止まる(=ボスや道中の時計も会話中は進まない)。
 Game.stageRunner = {
   stage: null,
   phaseIndex: 0,
@@ -10,7 +15,8 @@ Game.stageRunner = {
 
 Game.startStage = function startStage(stage) {
   Game.stageRunner.stage = stage;
-  Game.enterStagePhase(0);
+  const lines = stage.dialogue && stage.dialogue.stageStart;
+  Game.startDialogue(lines, () => Game.enterStagePhase(0));
 };
 
 Game.enterStagePhase = function enterStagePhase(index) {
@@ -21,13 +27,18 @@ Game.enterStagePhase = function enterStagePhase(index) {
   runner.spawnedFlags = new Set();
 
   if (index >= stage.phases.length) {
+    Game.finalizeStageResult();
     Game.setState(Game.STATES.STAGE_CLEAR);
     return;
   }
 
   const phase = stage.phases[index];
   if (phase.type === "miniboss" || phase.type === "boss") {
-    Game.spawnBoss(phase.key, phase.x, phase.y, phase.type === "boss");
+    const def = Game.BOSS_DEFS[phase.key];
+    const lines = def.dialogue && def.dialogue.beforeBattle;
+    Game.startDialogue(lines, () => {
+      Game.spawnBoss(phase.key, phase.x, phase.y, phase.type === "boss");
+    });
   }
 };
 

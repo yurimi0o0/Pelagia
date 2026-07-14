@@ -40,6 +40,35 @@ Game.ENEMY_DEFS = {
     score: Game.CONFIG.score.anglerGrunt,
     shot: { interval: 1.5, speed: 125, radius: 4, color: "rgba(255, 214, 120, 0.95)", glowColor: "rgba(255, 230, 160, 0.45)" },
   },
+  // 3面(無光王宮)の雑魚。最終面らしく1・2面よりわずかにHP/弾速/接触判定を強めている。
+  // メディモチーフの小型クラゲ2種(1種は単発弾持ち)と、オリアモチーフの高速シャチ。
+  mediGrunt1: {
+    sprite: "assets/enemy_medi_grunt1.png",
+    spriteWidth: 44,
+    spriteHeight: 44,
+    hp: 7,
+    radius: 15,
+    score: Game.CONFIG.score.mediGrunt,
+    shot: null,
+  },
+  mediGrunt2: {
+    sprite: "assets/enemy_medi_grunt2.png",
+    spriteWidth: 44,
+    spriteHeight: 44,
+    hp: 6,
+    radius: 14,
+    score: Game.CONFIG.score.mediGrunt,
+    shot: { interval: 1.3, speed: 140, radius: 4.5, color: "rgba(200, 160, 255, 0.95)", glowColor: "rgba(220, 190, 255, 0.45)" },
+  },
+  oriaGrunt: {
+    sprite: "assets/enemy_oria_grunt.png",
+    spriteWidth: 48,
+    spriteHeight: 30,
+    hp: 6,
+    radius: 14,
+    score: Game.CONFIG.score.oriaGrunt,
+    shot: null,
+  },
 };
 
 // 移動パターンのライブラリ。spec.move.params を渡すと age(経過秒)→座標 の関数を返す。

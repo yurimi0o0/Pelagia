@@ -5,6 +5,10 @@
   const RECTS = {
     storyButton: { x: 70, y: 356, w: 220, h: 56 },
     practiceButton: { x: 70, y: 426, w: 220, h: 56 },
+    endingReplayButton: { x: 70, y: 496, w: 220, h: 40 },
+
+    finalClearToTitle: { x: 40, y: 486, w: 130, h: 46 },
+    finalClearToStageSelect: { x: 190, y: 486, w: 130, h: 46 },
 
     backToTitle: { x: 16, y: 16, w: 90, h: 30 },
     stageSlot1: { x: 40, y: 150, w: 280, h: 74 },
@@ -187,12 +191,21 @@
     ctx.fillStyle = ui.subTextColor;
     ctx.fillText("— 海霊たちの眠る聖域 —", w.width / 2, 282);
 
+    if (Game.saveData.fullCleared) {
+      ctx.font = `700 13px ${ui.bodyFont}`;
+      ctx.fillStyle = ui.accentGold;
+      ctx.fillText("☆ CLEAR ☆", w.width / 2, 304);
+    }
+
     drawButton(ctx, RECTS.storyButton, "通しプレイ");
     drawButton(ctx, RECTS.practiceButton, "面選択（練習）");
+    if (Game.saveData.endingSeen) {
+      drawButton(ctx, RECTS.endingReplayButton, "エンディング回想", 14);
+    }
 
     ctx.font = `400 11px ${ui.bodyFont}`;
     ctx.fillStyle = ui.subTextColor;
-    ctx.fillText("面選択ではクリア済みの海域に挑めます", w.width / 2, 512);
+    ctx.fillText("面選択ではクリア済みの海域に挑めます", w.width / 2, 552);
     ctx.restore();
   };
 
@@ -391,8 +404,14 @@
   Game.handleTap = function handleTap(x, y) {
     const S = Game.STATES;
 
-    if (Game.state === S.DIALOGUE) {
+    if (Game.state === S.DIALOGUE || Game.state === S.ENDING) {
       Game.advanceDialogue();
+      return;
+    }
+
+    if (Game.state === S.FINAL_CLEAR) {
+      if (hitRect(x, y, RECTS.finalClearToTitle)) Game.setState(S.TITLE);
+      else if (hitRect(x, y, RECTS.finalClearToStageSelect)) Game.setState(S.STAGE_SELECT);
       return;
     }
 
@@ -401,10 +420,14 @@
         // 「1面から順に進む」通しプレイ：次に挑む面(=クリア済みの続き)が実装済みならそこから、
         // なければ1面からやり直す(全部クリア済み/未実装面しか無い場合のフォールバック)。
         const nextStage = Game.saveData.clearedThrough + 1;
+        const startingFresh = !Game.STAGES[nextStage] || nextStage === 1;
+        if (startingFresh) Game.storyTotalScore = 0; // 周回の先頭からなら合計スコアをリセット
         Game.runMode = "STORY";
         Game.startRun(Game.STAGES[nextStage] ? nextStage : 1);
       } else if (hitRect(x, y, RECTS.practiceButton)) {
         Game.setState(S.STAGE_SELECT);
+      } else if (Game.saveData.endingSeen && hitRect(x, y, RECTS.endingReplayButton)) {
+        Game.playEndingReplay();
       }
       return;
     }
@@ -443,4 +466,13 @@
       else if (hitRect(x, y, RECTS.resultToStageSelect)) Game.setState(S.STAGE_SELECT);
     }
   };
+
+  // ending.js(別モジュール)からも同じ石版/見出しの見た目を使えるように公開する。
+  Game.hitRect = hitRect;
+  Game.drawTabletFrame = drawTabletFrame;
+  Game.drawButton = drawButton;
+  Game.drawDivider = drawDivider;
+  Game.drawGlowTitle = drawGlowTitle;
+  Game.drawDim = drawDim;
+  Game.uiRects = RECTS;
 })();

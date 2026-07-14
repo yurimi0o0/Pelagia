@@ -3,6 +3,10 @@
   const S = Game.STATES;
 
   function update(dt) {
+    if (Game.state === S.DIALOGUE || Game.state === S.ENDING) {
+      Game.updateDialogue(dt);
+      return;
+    }
     if (Game.state !== S.PLAYING) return;
 
     Game.player.update(dt);
@@ -14,6 +18,7 @@
     // 即座に進んでしまい、会話がまったく表示されないまま上書きされる。ここで一度止める。
     if (Game.state !== S.PLAYING) return;
     Game.updateEnemyBullets(dt);
+    Game.updateEnemyLasers(dt);
     Game.updateStageRunner(dt);
     Game.resolveCollisions();
   }
@@ -23,11 +28,14 @@
     Game.drawBackground(ctx);
     Game.drawGrunts(ctx);
     Game.drawBoss(ctx);
+    Game.drawCutsceneActors(ctx);
+    Game.drawAltarReachEffect(ctx);
     Game.drawPlayerBullets(ctx);
     Game.player.drawSway(ctx);
     Game.player.draw(ctx);
     if (CONFIG.debug.showHitCircle) Game.player.drawHitCircle(ctx);
     Game.drawEnemyBullets(ctx); // 避けるべき弾は最前面で視認性を優先
+    Game.drawEnemyLasers(ctx);
     Game.drawHUD(ctx);
     Game.drawBossBar(ctx);
   }
@@ -54,12 +62,21 @@
     } else if (Game.state === S.STAGE_SELECT) {
       Game.drawBackground(ctx);
       Game.drawStageSelect(ctx);
+    } else if (Game.state === S.ENDING) {
+      // エンディングは1枚絵メインの専用画面なので、ゲーム世界(drawWorld)は経由しない。
+      Game.drawEndingScene(ctx);
+    } else if (Game.state === S.FINAL_CLEAR) {
+      Game.drawBackground(ctx);
+      Game.drawFinalClear(ctx);
     } else {
       drawWorld(ctx);
       if (Game.state === S.PAUSED) Game.drawPauseOverlay(ctx);
       else if (Game.state === S.GAME_OVER) Game.drawGameOver(ctx);
       else if (Game.state === S.STAGE_CLEAR) Game.drawStageClear(ctx);
-      else if (Game.state === S.DIALOGUE) Game.drawDialogueBox(ctx);
+      else if (Game.state === S.DIALOGUE) {
+        Game.drawDialogueBox(ctx);
+        Game.drawFadeOverlay(ctx);
+      }
     }
 
     ctx.restore();

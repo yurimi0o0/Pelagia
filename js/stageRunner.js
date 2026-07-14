@@ -53,7 +53,7 @@ Game.updateStageRunner = function updateStageRunner(dt) {
     phase.spawns.forEach((spawn, i) => {
       if (!runner.spawnedFlags.has(i) && runner.phaseTimer >= spawn.t) {
         runner.spawnedFlags.add(i);
-        Game.spawnWave(Game.WAVES[spawn.wave]);
+        Game.spawnWave(runner.stage.waves[spawn.wave]);
       }
     });
     if (runner.phaseTimer >= phase.duration) {

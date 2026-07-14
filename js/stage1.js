@@ -1,6 +1,7 @@
-// 1面固有のデータ。編隊(WAVES)は ENEMY_DEFS の type と MOVEMENTS の kind を組み合わせて作る。
+// 1面固有のデータ。編隊(waves)は ENEMY_DEFS の type と MOVEMENTS の kind を組み合わせて作る。
 // 新しい編隊を足したい時はここに1エントリ増やすだけでよい。
-Game.WAVES = {
+// (面ごとに独立したオブジェクトにして、他ステージのwavesと名前が衝突しないようにしている)
+const STAGE1_WAVES = {
   // 中央に3体、少し間隔を空けて縦に落ちてくる
   columnCenter: [
     { type: "eelGrunt", delay: 0, move: { kind: "straightDown", params: { x: 120, y0: -20, speed: 70 } } },
@@ -40,6 +41,7 @@ Game.WAVES = {
 
 Game.STAGE1 = {
   title: "透光庭園",
+  waves: STAGE1_WAVES,
   // 面開始時に流す短い会話。ステージ側に持たせておくことで、面ごとに差し替えられる。
   dialogue: {
     stageStart: [

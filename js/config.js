@@ -9,14 +9,20 @@ Game.CONFIG = {
   },
 
   assets: {
-    background: "assets/bg_stage1.jpg",
+    background1: "assets/bg_stage1.jpg",
+    background2: "assets/bg_stage2.png",
     playerBack: "assets/player_back.png",
     bossLena: "assets/boss_lena.png",
     bossRione: "assets/boss_rione.png",
+    bossCoralia: "assets/boss_coralia.png",
+    bossEscar: "assets/boss_escar.png",
     enemyLenaGrunt: "assets/enemy_lena_grunt.png",
     enemyRioneGrunt: "assets/enemy_rione_grunt.png",
+    enemyCoraliaGrunt: "assets/enemy_coralia_grunt.png",
+    enemyEscarGrunt: "assets/enemy_escar_grunt.png",
     portraitLena: "assets/portrait_lena.png",
     portraitRione: "assets/portrait_rione.png",
+    // コーリア/エスカーの専用立ち絵は未提供のため、届くまでSD戦闘絵を会話立ち絵にも流用する。
   },
 
   colors: {
@@ -90,6 +96,8 @@ Game.CONFIG = {
   score: {
     eelGrunt: 100,
     fishGrunt: 120,
+    lionfishGrunt: 110,
+    anglerGrunt: 130,
     miniboss: 3000,
     boss: 10000,
     clearBonus: 2000,

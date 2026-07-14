@@ -110,6 +110,7 @@
     ctx.fill();
     ctx.restore();
   }
+  Game.drawDivider = drawDivider; // dialogue.jsの名乗り演出からも使う
 
   // 淡い後光を重ねた見出し文字。
   function drawGlowTitle(ctx, text, cx, cy, fontSize) {
@@ -131,6 +132,7 @@
     ctx.fillText(text, cx, cy);
     ctx.restore();
   }
+  Game.drawGlowTitle = drawGlowTitle; // dialogue.jsの名乗り演出からも使う
 
   function drawDim(ctx, fill) {
     const w = Game.CONFIG.world;
@@ -398,8 +400,11 @@
 
     if (Game.state === S.TITLE) {
       if (hitRect(x, y, RECTS.storyButton)) {
+        // 「1面から順に進む」通しプレイ：次に挑む面(=クリア済みの続き)が実装済みならそこから、
+        // なければ1面からやり直す(全部クリア済み/未実装面しか無い場合のフォールバック)。
+        const nextStage = Game.saveData.clearedThrough + 1;
         Game.runMode = "STORY";
-        Game.startRun(1);
+        Game.startRun(Game.STAGES[nextStage] ? nextStage : 1);
       } else if (hitRect(x, y, RECTS.practiceButton)) {
         Game.setState(S.STAGE_SELECT);
       }

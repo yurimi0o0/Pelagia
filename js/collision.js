@@ -36,7 +36,7 @@ Game.resolveCollisions = function resolveCollisions() {
   let hit = false;
 
   Game.enemyBullets.forEachActive((b) => {
-    if (hit || !b.active) return;
+    if (hit || !b.active || b.fake) return; // 囮弾は見た目だけで当たり判定を持たない
     if (Game.circleHit(hx, hy, hr, b.x, b.y, b.radius)) {
       b.active = false;
       hit = true;

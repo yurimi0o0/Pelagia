@@ -4,6 +4,9 @@
 Game.SPEAKER_PORTRAITS = {
   "レーナ": "lena",
   "リオネ": "rione",
+  "コーリア": "coralia",
+  "エスカー": "escar",
+  // シェーラは立ち絵未提供のため、当面はテキストのみで表示する。
 };
 
 Game.dialogue = {
@@ -53,9 +56,44 @@ Game.advanceDialogue = function advanceDialogue() {
     return lines;
   }
 
+  // 六英傑の「名乗り」演出。会話の行配列に { nameReveal:true, speaker, epithet, title } を
+  // 混ぜるだけで、通常の台詞行と同じタップ送りの流れに乗る(2面以降のボスでも使い回せる)。
+  function drawNameReveal(ctx, line) {
+    const w = Game.CONFIG.world;
+    const ui = Game.CONFIG.ui;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(4, 6, 12, 0.55)";
+    ctx.fillRect(0, 0, w.width, w.height);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `600 15px ${ui.bodyFont}`;
+    ctx.fillStyle = ui.subTextColor;
+    ctx.fillText(line.epithet, w.width / 2, 300);
+
+    Game.drawGlowTitle(ctx, line.speaker, w.width / 2, 345, 34);
+    Game.drawDivider(ctx, w.width / 2, 368, 160);
+
+    ctx.font = `italic 400 14px ${ui.bodyFont}`;
+    ctx.fillStyle = ui.accentGold;
+    ctx.fillText(line.title, w.width / 2, 392);
+
+    if (Math.floor(performance.now() / 450) % 2 === 0) {
+      ctx.font = `600 11px ${ui.bodyFont}`;
+      ctx.fillStyle = ui.subTextColor;
+      ctx.fillText("▼ タップで続ける", w.width / 2, 460);
+    }
+    ctx.restore();
+  }
+
   Game.drawDialogueBox = function drawDialogueBox(ctx) {
     const line = Game.dialogue.lines[Game.dialogue.index];
     if (!line) return;
+    if (line.nameReveal) {
+      drawNameReveal(ctx, line);
+      return;
+    }
     const w = Game.CONFIG.world;
     const ui = Game.CONFIG.ui;
 

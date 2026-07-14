@@ -6,6 +6,8 @@ Game.BOSS_FALLBACK_COLORS = {
   rione: "#c9b6ff",
   coralia: "#ff6f6f",
   escar: "#7a6fdc",
+  oria: "#7ab8ff",
+  medi: "#c090e8",
 };
 
 Game.BOSS_DEFS = {
@@ -206,7 +208,7 @@ Game.BOSS_DEFS = {
       // 会話開始時点でエスカーとシェーラはすでに言い争っている(ジェリーはまだ登場していない体)。
       beforeBattle: [
         { speaker: "シェーラ", text: "エスカー。何度言ったらわかるの。英傑のくせに深海灯を奪うことしか考えていない。" },
-        { speaker: "エスカー", text: "何度も言われているから流石に懲りてるわよ〜。シェリーもしつこいわね。" },
+        { speaker: "エスカー", text: "何度も言われているから流石に懲りてるわよ〜。シェーラもしつこいわね。" },
         { speaker: "エスカー", text: "浅海の子が来てるらしいのよっ？気になるじゃない♪" },
         { speaker: "シェーラ", text: "やはりあの浅海の子を…。" },
         { speaker: "シェーラ", text: "知らないことは罪ではありません。ですが、知らずに壊すことは罪になります。あの子は、何も知らない。" },
@@ -275,6 +277,254 @@ Game.BOSS_DEFS = {
           radius: 4,
           color: "rgba(255, 225, 140, 0.92)",
           glowColor: "rgba(255, 235, 180, 0.4)",
+        },
+      },
+    ],
+  },
+
+  oria: {
+    name: "オリア",
+    epithet: "第六英傑",
+    title: "黒鱗の騎士",
+    sprite: "assets/boss_oria.png",
+    spriteWidth: 130,
+    spriteHeight: 130,
+    radius: 42,
+    hp: 260,
+    // オリアは最強の騎士。他中ボスより格上として、HPも一段高く3パターン構成にしている。
+    dialogue: {
+      beforeBattle: [
+        { speaker: "オリア", text: "そこまでだ、浅海の子。" },
+        { speaker: "ジェリー", text: "あなたも、わたしを止めるの…？" },
+        { speaker: "オリア", text: "六英傑が一、黒鱗の騎士オリア。この門より奥へは、何人たりとも通さぬ。" },
+        { speaker: "オリア", text: "……お前がここまで来た理由も、その覚悟も、見せてもらった。お前が正しい可能性は、認めよう。" },
+        { speaker: "オリア", text: "だが、私は任務を捨てられない。全てを捨ててでも、守らねばならぬものがある。" },
+        { speaker: "オリア", text: "恨むなら、己の運命を恨め。——来い。" },
+      ],
+      afterDefeat: [
+        { speaker: "オリア", text: "……見事。私の槍を、抜けたか。すみません、メディ様…。" },
+        { speaker: "オリア", text: "行け。この先におわすのは、我らが女王。……英傑護メディ様だ。" },
+        { speaker: "オリア", text: "ひとつ言っておく。あの方は、お前を斬りはしない。だが——お前が一番、恐れるべき相手だ。" },
+        { speaker: "ジェリー", text: "恐れる…？" },
+        { speaker: "オリア", text: "真実は、刃よりも深く刺さる。……行くがいい。" },
+      ],
+    },
+    // 設定資料の「波状白黒弾/三叉槍直線レーザー/高速突進」の3形態(潮流反転は今回不採用)。
+    patterns: [
+      {
+        kind: "tideWaves",
+        hpThreshold: 0.66,
+        params: {
+          interval: 0.85,
+          count: 9,
+          speed: 98,
+          white: { radius: 4, color: "rgba(255, 255, 255, 0.95)", glowColor: "rgba(210, 225, 255, 0.4)" },
+          black: { radius: 4.5, color: "rgba(28, 30, 52, 0.95)", glowColor: "rgba(140, 160, 230, 0.45)" },
+        },
+      },
+      {
+        kind: "tridentLaser",
+        hpThreshold: 0.33,
+        // 3つめの弾幕に入る直前だけ挟む短い一言。
+        beforePattern: [{ speaker: "オリア", text: "お前の気持ちもわかる。ただ、メディ様に会わせる訳にはいかない。" }],
+        params: {
+          interval: 2.1,
+          spreadAngle: 0.32,
+          laser: {
+            length: 500,
+            warnDuration: 0.6,
+            fireDuration: 0.55,
+            fadeDuration: 0.25,
+            warnWidth: 2,
+            fireWidth: 7,
+            color: "rgba(190, 215, 255, 0.95)",
+            glowColor: "rgba(210, 230, 255, 0.4)",
+            warnColor: "rgba(255, 255, 255, 0.6)",
+          },
+        },
+      },
+      {
+        kind: "dashCharge",
+        // 最終形態：高速突進+着地際の自機狙い弾。ボス本体が動く初めてのパターンなので
+        // suppressSway(patternState)でアイドル揺れを止め、突進の座標計算と競合しないようにする。
+        params: {
+          waitDuration: 1.1,
+          chargeDuration: 0.28,
+          returnDuration: 0.6,
+          chargeDepth: 260,
+          burstPause: 0.25,
+          burstCount: 5,
+          burstSpread: 0.5,
+          burstSpeed: 190,
+          bullet: { radius: 4.5, color: "rgba(150, 190, 255, 0.92)", glowColor: "rgba(180, 210, 255, 0.4)" },
+        },
+      },
+    ],
+  },
+
+  medi: {
+    name: "メディ",
+    epithet: "英傑護",
+    title: "深淵の冠主",
+    // sprites: 通常/本気モードの2枚を持つラスボス。drawBoss側はdef.spritesが無い他ボスでは
+    // 今まで通り単一def.spriteを描くので、既存ボスへの影響はない。
+    sprites: {
+      default: { key: "medi", width: 112, height: 149 },
+      serious: { key: "mediSerious", width: 112, height: 149 },
+    },
+    radius: 46,
+    hp: 900,
+    dialogue: {
+      beforeBattle: [
+        // 前回の対戦で本気形態のまま終わっていても、登場時は必ず通常の立ち絵に戻す。
+        { type: "action", run: () => { Game.SPEAKER_PORTRAITS["メディ"] = "medi"; } },
+        { speaker: "メディ", text: "……よく来ました。ここまで、ひとりで。" },
+        { speaker: "ジェリー", text: "あなたが、メディ…。深海灯を、守ってる。" },
+        { speaker: "メディ", text: "全てが滞りない。美しい。……あなたが来たことさえ、この海の流れのひとつ。" },
+        { speaker: "ジェリー", text: "お願い。深海灯を、わたしにください。浅海が、死んじゃう。あの光があれば——" },
+        { speaker: "メディ", text: "あなたが光を必要としていることは、知っています。" },
+        { speaker: "メディ", text: "ですが、その光を失えば、この海の底にいる者たちは生きられない。否、海全てが破滅に陥る。" },
+        { speaker: "メディ", text: "……そして、あなたは。その光がどういうものかも、知らないでしょう？" },
+        { speaker: "ジェリー", text: "それでも！ わたしは、諦めない。だからここまで来たんだ。これたんだ。" },
+        { speaker: "メディ", text: "……ええ。ならば、見せてください。あなたの願いを。" },
+        { speaker: "メディ", text: "深淵の冠主メディ。わたしが、最後の「あれ」の前の壁です。" },
+      ],
+      // 撃破後はそのまま真相開示(D-2)へ。移動/フェード等の演出stepはdialogue.jsの拡張(D-1)で解釈される。
+      afterDefeat: [
+        { speaker: "メディ", text: "いいでしょう。深海灯は、この祭壇の先にあります。……取りに行きなさい。" },
+        { speaker: "ジェリー", text: "！ …いいの？" },
+        { speaker: "メディ", text: "ええ。どうぞ。——掴めるものなら。" },
+
+        { type: "move", target: "jelly", to: { x: 180, y: 260 }, duration: 1.6 },
+        { type: "action", run: () => Game.beginAltarReachEffect() },
+        { type: "wait", duration: 1.0 },
+
+        { speaker: "ジェリー", text: "これが…深海灯…。あったかい、光…。" },
+        { speaker: "ジェリー", text: "（手を伸ばす）……あれ。" },
+        { speaker: "ジェリー", text: "つかめ、ない…？ 手が、すり抜ける…どうして。" },
+        { speaker: "メディ", text: "だから言ったでしょう。あなたはそれを、持つことはできません。" },
+        { speaker: "ジェリー", text: "どういう…こと。目の前に、あるのに。" },
+        { speaker: "メディ", text: "PELAGIA(ペラギア)。それが、この光の本当の名。……ではなく、私はそう呼んでます。" },
+        { speaker: "メディ", text: "明かりのような実体物ではなく、概念に近いもの。" },
+        { speaker: "メディ", text: "鏡のような。水面のような。……触れれば、失われてしまうもの。" },
+        { speaker: "メディ", text: "探していたのでしょうが、それそのものは、常にある。探すも何も。そこに。" },
+        { speaker: "ジェリー", text: "わたし、じゃ…持って帰れないの…？ じゃあ、浅海は——" },
+        { speaker: "メディ", text: "……まだ、わからないのですね。" },
+        { speaker: "メディ", text: "あなたもまた、その一部なのです。" },
+        { speaker: "メディ", text: "PELAGIA(ペラギア)は私たち海そのものを集めたもの。" },
+
+        { type: "fade", color: "#eaf6ff", duration: 1.4, direction: "out" },
+        { type: "wait", duration: 0.8 },
+        { type: "fade", color: "#eaf6ff", duration: 1.4, direction: "in" },
+
+        { speaker: "ジェリー", text: "……あ。" },
+        { speaker: "ジェリー", text: "それは、光は、持って帰れるものじゃ、ないんだ。なかったん…ですね。" },
+        { speaker: "ジェリー", text: "……じゃあどうすれば浅海を戻せるの……？" },
+        { speaker: "メディ", text: "気づきましたね。" },
+        { speaker: "メディ", text: "ただ、知った。それだけで、じゅうぶんです。" },
+        { speaker: "メディ", text: "浅海は光を失ったのではない。あなたが光を見失っただけ。" },
+        { speaker: "ジェリー", text: "…見失った、だけ。" },
+        { speaker: "ジェリー", text: "じゃあ、戻ればそれで全て終わるの？" },
+        { speaker: "メディ", text: "ええ。行っておいで。全てを忘れるかもしれないけれど、海は全て覚えているから。" },
+      ],
+    },
+    // 設定資料の「青と赤の二重弾幕/クラゲの傘/触手状レーザー/最終パターン」の4形態。
+    // (七英傑技再現は今回不採用。最終形態は"最終スペル"ではなく"最終パターン《PELAGIA》"と呼ぶ)
+    patterns: [
+      {
+        kind: "duoColorBarrage",
+        hpThreshold: 0.75,
+        params: {
+          blueInterval: 0.85,
+          blueCount: 3,
+          blueSpread: 0.22,
+          blueSpeed: 150,
+          blue: { radius: 4, color: "rgba(120, 190, 255, 0.92)", glowColor: "rgba(160, 210, 255, 0.4)" },
+          redInterval: 1.3,
+          redCount: 12,
+          redRotStep: 0.26,
+          redSpeed: 92,
+          red: { radius: 4.5, color: "rgba(255, 110, 130, 0.92)", glowColor: "rgba(255, 150, 170, 0.4)" },
+        },
+      },
+      {
+        kind: "jellyfishCanopy",
+        hpThreshold: 0.5,
+        params: {
+          interval: 0.55,
+          count: 16,
+          rotStep: 0.14,
+          speed: 68,
+          bullet: { radius: 4.5, ring: true, color: "rgba(210, 170, 255, 0.9)", glowColor: "rgba(220, 190, 255, 0.4)" },
+        },
+      },
+      {
+        kind: "tentacleLasers",
+        hpThreshold: 0.25,
+        params: {
+          count: 5,
+          startOffset: 0,
+          angularSpeed: 0.32,
+          laser: {
+            length: 420,
+            warnDuration: 0.7,
+            fireDuration: 20,
+            fadeDuration: 0.4,
+            warnWidth: 2,
+            fireWidth: 6,
+            color: "rgba(200, 150, 255, 0.92)",
+            glowColor: "rgba(215, 175, 255, 0.4)",
+            warnColor: "rgba(255, 255, 255, 0.6)",
+          },
+        },
+      },
+      {
+        kind: "pelagiaFinale",
+        // 4つめの弾幕前。ここで通常→本気モードへ立ち絵を差し替える(会話の途中で同期させる)。
+        beforePattern: [
+          { speaker: "メディ", text: "……久しぶりに揺らされました。これも流れのひとつなら仕方がありませんが……。" },
+          { type: "action", run: () => { Game.triggerBossFormFlash(Game.activeBoss, "serious"); Game.SPEAKER_PORTRAITS["メディ"] = "mediSerious"; } },
+          { speaker: "メディ", text: "英傑護として最後まで戦いましょうか。" },
+        ],
+        params: {
+          stages: [
+            {
+              type: "ring",
+              duration: 4.5,
+              interval: 0.6,
+              count: 14,
+              rotStep: 0.12,
+              speed: 82,
+              bullet: { radius: 4, color: "rgba(140, 195, 255, 0.92)", glowColor: "rgba(170, 210, 255, 0.4)" },
+            },
+            {
+              type: "aimed",
+              duration: 3.5,
+              interval: 0.5,
+              count: 3,
+              spread: 0.24,
+              speed: 175,
+              bullet: { radius: 4.5, color: "rgba(255, 120, 140, 0.92)", glowColor: "rgba(255, 160, 180, 0.4)" },
+            },
+            {
+              type: "laser",
+              duration: 4,
+              interval: 2.4,
+              count: 3,
+              sweepSpeed: 0.16,
+              laser: {
+                length: 480,
+                warnDuration: 0.7,
+                fireDuration: 0.8,
+                fadeDuration: 0.3,
+                warnWidth: 2,
+                fireWidth: 6,
+                color: "rgba(215, 180, 255, 0.92)",
+                glowColor: "rgba(225, 195, 255, 0.4)",
+                warnColor: "rgba(255, 255, 255, 0.6)",
+              },
+            },
+          ],
         },
       },
     ],
@@ -470,6 +720,189 @@ Game.BOSS_PATTERNS = {
       Game.fireAngledBullet(boss.x, boss.y, baseAngle + offset, params.speed, { ...params, fake: isFake });
     }
   },
+
+  // オリア第1形態：画面上部を横断する弾の列を、白/黒(濃紺)交互に押し寄せる波として連続発射する。
+  tideWaves(boss, pattern, dt) {
+    const params = pattern.params;
+    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
+    if (boss.patternState.timer > 0) return;
+    boss.patternState.timer = params.interval;
+    boss.patternState.wave = (boss.patternState.wave || 0) + 1;
+
+    const style = boss.patternState.wave % 2 === 1 ? params.white : params.black;
+    const w = Game.CONFIG.world;
+    for (let i = 0; i < params.count; i += 1) {
+      const x = ((i + 0.5) / params.count) * w.width;
+      Game.fireAngledBullet(x, -10, Math.PI / 2, params.speed, style);
+    }
+  },
+
+  // オリア第2形態：三叉槍の3本から自機狙い±扇状オフセットで直線レーザーを同時展開する。
+  tridentLaser(boss, pattern, dt) {
+    const params = pattern.params;
+    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
+    if (boss.patternState.timer > 0) return;
+    boss.patternState.timer = params.interval;
+
+    const p = Game.player;
+    const baseAngle = Math.atan2(p.y - boss.y, p.x - boss.x);
+    [-params.spreadAngle, 0, params.spreadAngle].forEach((offset) => {
+      Game.fireLaser(boss.x, boss.y, baseAngle + offset, params.laser);
+    });
+  },
+
+  // オリア最終形態：自機付近へ高速突進→着地際に自機狙いの弾を撒く→元の位置へ戻る、を繰り返す。
+  // ボス本体が動く初めてのパターンなので、移動中はpatternState.suppressSwayでアイドル揺れを止める。
+  dashCharge(boss, pattern, dt) {
+    const params = pattern.params;
+    const ps = boss.patternState;
+    if (!ps.phase) {
+      ps.phase = "wait";
+      ps.timer = params.waitDuration;
+    }
+    ps.timer -= dt;
+
+    if (ps.phase === "wait") {
+      if (ps.timer <= 0) {
+        ps.phase = "charge";
+        ps.suppressSway = true;
+        ps.fromX = boss.x;
+        ps.fromY = boss.y;
+        ps.toX = Game.clamp(Game.player.x, 40, Game.CONFIG.world.width - 40);
+        ps.toY = Math.min(boss.baseY + params.chargeDepth, Game.player.y - 70);
+        ps.duration = params.chargeDuration;
+        ps.elapsed = 0;
+      }
+      return;
+    }
+
+    if (ps.phase === "charge" || ps.phase === "return") {
+      ps.elapsed += dt;
+      const t = Math.min(1, ps.elapsed / ps.duration);
+      const eased = ps.phase === "charge" ? 1 - (1 - t) * (1 - t) : t * t;
+      boss.x = ps.fromX + (ps.toX - ps.fromX) * eased;
+      boss.y = ps.fromY + (ps.toY - ps.fromY) * eased;
+      if (t >= 1) {
+        if (ps.phase === "charge") {
+          const angle = Math.atan2(Game.player.y - boss.y, Game.player.x - boss.x);
+          for (let i = 0; i < params.burstCount; i += 1) {
+            const offset = (i - (params.burstCount - 1) / 2) * params.burstSpread;
+            Game.fireAngledBullet(boss.x, boss.y, angle + offset, params.burstSpeed, params.bullet);
+          }
+          ps.phase = "burstWait";
+          ps.timer = params.burstPause;
+        } else {
+          ps.phase = "wait";
+          ps.timer = params.waitDuration;
+          ps.suppressSway = false;
+        }
+      }
+      return;
+    }
+
+    if (ps.phase === "burstWait" && ps.timer <= 0) {
+      ps.phase = "return";
+      ps.fromX = boss.x;
+      ps.fromY = boss.y;
+      ps.toX = boss.baseX;
+      ps.toY = boss.baseY;
+      ps.duration = params.returnDuration;
+      ps.elapsed = 0;
+    }
+  },
+
+  // メディ第1形態：青(自機狙い扇)と赤(回転リング)の2系統を同時に撃ち分ける二重弾幕。
+  duoColorBarrage(boss, pattern, dt) {
+    const params = pattern.params;
+    const ps = boss.patternState;
+    ps.blueTimer = (ps.blueTimer || 0) - dt;
+    ps.redTimer = (ps.redTimer || 0) - dt;
+
+    if (ps.blueTimer <= 0) {
+      ps.blueTimer = params.blueInterval;
+      const p = Game.player;
+      const angle = Math.atan2(p.y - boss.y, p.x - boss.x);
+      for (let i = 0; i < params.blueCount; i += 1) {
+        const offset = (i - (params.blueCount - 1) / 2) * params.blueSpread;
+        Game.fireAngledBullet(boss.x, boss.y, angle + offset, params.blueSpeed, params.blue);
+      }
+    }
+
+    if (ps.redTimer <= 0) {
+      ps.redTimer = params.redInterval;
+      ps.redRot = (ps.redRot || 0) + params.redRotStep;
+      Game.fireRing(boss.x, boss.y, params.redCount, ps.redRot, params.redSpeed, params.red);
+    }
+  },
+
+  // メディ第2形態：巨大なクラゲの傘のように、回転しながら広がるリングを連続発射して画面を覆う。
+  jellyfishCanopy(boss, pattern, dt) {
+    const params = pattern.params;
+    const ps = boss.patternState;
+    ps.timer = (ps.timer || 0) - dt;
+    if (ps.timer > 0) return;
+    ps.timer = params.interval;
+    ps.rot = (ps.rot || 0) + params.rotStep;
+    Game.fireRing(boss.x, boss.y, params.count, ps.rot, params.speed, params.bullet);
+  },
+
+  // メディ第3形態：触手のように、ボスを中心に追従しながらゆっくり回転する直線レーザーを複数展開する。
+  tentacleLasers(boss, pattern, dt) {
+    const params = pattern.params;
+    const ps = boss.patternState;
+    if (ps.spawned) return;
+    ps.spawned = true;
+    for (let i = 0; i < params.count; i += 1) {
+      const angle = (Math.PI * 2 * i) / params.count + params.startOffset;
+      Game.fireLaser(boss.x, boss.y, angle, {
+        ...params.laser,
+        angularVelocity: (i % 2 === 0 ? 1 : -1) * params.angularSpeed,
+        followBoss: true,
+        bossRef: boss,
+      });
+    }
+  },
+
+  // メディ最終形態「PELAGIA」：1〜3形態の要素(リング/自機狙い/回転レーザー)を短い内部フェーズとして
+  // 順に繰り返す締めの一連。理不尽な密度にはせず、間合いを広めに取って綺麗に見せることを優先する。
+  pelagiaFinale(boss, pattern, dt) {
+    const params = pattern.params;
+    const ps = boss.patternState;
+    if (ps.stage == null) {
+      ps.stage = 0;
+      ps.stageTimer = 0;
+      ps.fireTimer = 0;
+    }
+    ps.stageTimer += dt;
+    ps.fireTimer -= dt;
+
+    const stageDef = params.stages[ps.stage];
+    if (ps.fireTimer <= 0) {
+      ps.fireTimer = stageDef.interval;
+      if (stageDef.type === "ring") {
+        ps.ringRot = (ps.ringRot || 0) + stageDef.rotStep;
+        Game.fireRing(boss.x, boss.y, stageDef.count, ps.ringRot, stageDef.speed, stageDef.bullet);
+      } else if (stageDef.type === "aimed") {
+        const p = Game.player;
+        const angle = Math.atan2(p.y - boss.y, p.x - boss.x);
+        for (let i = 0; i < stageDef.count; i += 1) {
+          const offset = (i - (stageDef.count - 1) / 2) * stageDef.spread;
+          Game.fireAngledBullet(boss.x, boss.y, angle + offset, stageDef.speed, stageDef.bullet);
+        }
+      } else if (stageDef.type === "laser") {
+        for (let i = 0; i < stageDef.count; i += 1) {
+          const angle = (Math.PI * 2 * i) / stageDef.count + ps.stageTimer * stageDef.sweepSpeed;
+          Game.fireLaser(boss.x, boss.y, angle, stageDef.laser);
+        }
+      }
+    }
+
+    if (ps.stageTimer >= stageDef.duration) {
+      ps.stage = (ps.stage + 1) % params.stages.length;
+      ps.stageTimer = 0;
+      ps.fireTimer = 0;
+    }
+  },
 };
 
 Game.activeBoss = null;
@@ -494,9 +927,25 @@ Game.spawnBoss = function spawnBoss(key, x, y, isMainBoss) {
     alive: true,
     defeated: false,
     defeatTimer: 0,
+    spriteKey: "default", // def.spritesを持つボス(メディ)だけが使う。無いボスは無視される。
+    formTransition: null,
   };
   Game.activeBoss = boss;
   return boss;
+};
+
+// 立ち絵差し替え(通常→本気モード等)を開始する。会話中の{type:'action'}stepから呼ばれる想定。
+Game.triggerBossFormFlash = function triggerBossFormFlash(boss, key) {
+  if (!boss) return;
+  const def = Game.BOSS_DEFS[boss.key];
+  if (!def.sprites || !def.sprites[key] || boss.spriteKey === key) return;
+  boss.formTransition = {
+    fromKey: boss.spriteKey,
+    toKey: key,
+    timer: 0,
+    duration: Game.CONFIG.boss.formFlashDuration,
+  };
+  boss.spriteKey = key;
 };
 
 Game.damageBoss = function damageBoss(boss, amount) {
@@ -506,6 +955,7 @@ Game.damageBoss = function damageBoss(boss, amount) {
     boss.alive = false;
     boss.defeated = true;
     boss.defeatTimer = Game.CONFIG.boss.defeatFlashDuration;
+    Game.clearActiveLasers();
     // 撃破演出(光の粒になって鎮まる)用に、飛び散る粒子の角度/速度/大きさを一度だけ決めておく。
     boss.defeatSeed = Array.from({ length: 14 }, () => ({
       angle: Math.random() * Math.PI * 2,
@@ -538,10 +988,18 @@ Game.updateBoss = function updateBoss(dt) {
   const def = Game.BOSS_DEFS[boss.key];
   boss.age += dt;
 
+  if (boss.formTransition) {
+    boss.formTransition.timer += dt;
+    if (boss.formTransition.timer >= boss.formTransition.duration) boss.formTransition = null;
+  }
+
   boss.entryProgress = Math.min(1, boss.entryProgress + dt / Game.CONFIG.boss.entryDuration);
   const eased = 1 - (1 - boss.entryProgress) * (1 - boss.entryProgress);
-  boss.y = boss.baseY - (1 - eased) * 160;
-  boss.x = boss.baseX + (boss.entryProgress >= 1 ? Math.sin(boss.age * 0.6) * 22 : 0);
+  // suppressSway: 突進のようにパターン側がboss.x/yを直接動かす間だけ、通常のアイドル揺れを止める。
+  if (!boss.patternState.suppressSway) {
+    boss.y = boss.baseY - (1 - eased) * 160;
+    boss.x = boss.baseX + (boss.entryProgress >= 1 ? Math.sin(boss.age * 0.6) * 22 : 0);
+  }
 
   const patterns = def.patterns;
   const pattern = patterns[boss.patternIndex];
@@ -555,6 +1013,7 @@ Game.updateBoss = function updateBoss(dt) {
       boss.patternIndex += 1;
       boss.patternTimer = 0;
       boss.patternState = {};
+      Game.clearActiveLasers(); // 前パターンのレーザーを寿命前に終わらせ、次パターンに持ち越させない
 
       // 次のパターンに専用の一言があれば、弾を出す前に挟む(DIALOGUE状態で今フレームはここまで)。
       const nextPattern = patterns[boss.patternIndex];
@@ -588,9 +1047,7 @@ Game.drawBoss = function drawBoss(ctx) {
     ctx.scale(scale, scale);
   }
 
-  if (img && img.ready) {
-    ctx.drawImage(img.image, -def.spriteWidth / 2, -def.spriteHeight / 2, def.spriteWidth, def.spriteHeight);
-  } else {
+  function drawFallbackCircle() {
     ctx.beginPath();
     ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
     ctx.arc(0, 0, boss.radius * 1.5, 0, Math.PI * 2);
@@ -599,6 +1056,50 @@ Game.drawBoss = function drawBoss(ctx) {
     ctx.fillStyle = Game.BOSS_FALLBACK_COLORS[boss.key] || "#c9b6ff";
     ctx.arc(0, 0, boss.radius, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  if (def.sprites) {
+    // 複数立ち絵を持つボス(メディ)：formTransition中は旧絵→新絵をクロスフェード+白発光で繋ぐ。
+    const spriteInfo = def.sprites[boss.spriteKey] || def.sprites.default;
+    const spriteImg = Game.assets.bosses[spriteInfo.key];
+    const t = boss.formTransition
+      ? Game.clamp(boss.formTransition.timer / boss.formTransition.duration, 0, 1)
+      : 1;
+
+    if (boss.formTransition) {
+      const fromInfo = def.sprites[boss.formTransition.fromKey] || def.sprites.default;
+      const fromImg = Game.assets.bosses[fromInfo.key];
+      if (fromImg && fromImg.ready) {
+        ctx.globalAlpha = 1 - t;
+        ctx.drawImage(fromImg.image, -fromInfo.width / 2, -fromInfo.height / 2, fromInfo.width, fromInfo.height);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    if (spriteImg && spriteImg.ready) {
+      ctx.globalAlpha = boss.formTransition ? t : 1;
+      ctx.drawImage(spriteImg.image, -spriteInfo.width / 2, -spriteInfo.height / 2, spriteInfo.width, spriteInfo.height);
+      ctx.globalAlpha = 1;
+    } else if (!boss.formTransition) {
+      drawFallbackCircle();
+    }
+
+    if (boss.formTransition) {
+      // t=0.5付近をピークにした白い発光を加算合成で重ね、切り替えの"間"を持たせる。
+      const flashAlpha = Math.sin(t * Math.PI);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = flashAlpha * 0.65;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.beginPath();
+      ctx.arc(0, 0, spriteInfo.width * 0.55, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  } else if (img && img.ready) {
+    ctx.drawImage(img.image, -def.spriteWidth / 2, -def.spriteHeight / 2, def.spriteWidth, def.spriteHeight);
+  } else {
+    drawFallbackCircle();
   }
   ctx.restore();
 

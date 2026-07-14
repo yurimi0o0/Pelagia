@@ -11,20 +11,33 @@ Game.CONFIG = {
   assets: {
     background1: "assets/bg_stage1.jpg",
     background2: "assets/bg_stage2.png",
+    background3: "assets/bg_stage3.png",
     playerBack: "assets/player_back.png",
     bossLena: "assets/boss_lena.png",
     bossRione: "assets/boss_rione.png",
     bossCoralia: "assets/boss_coralia.png",
     bossEscar: "assets/boss_escar.png",
+    bossOria: "assets/boss_oria.png",
+    bossMedi: "assets/boss_medi.png",
+    bossMediSerious: "assets/boss_medi_serious.png",
     enemyLenaGrunt: "assets/enemy_lena_grunt.png",
     enemyRioneGrunt: "assets/enemy_rione_grunt.png",
     enemyCoraliaGrunt: "assets/enemy_coralia_grunt.png",
     enemyEscarGrunt: "assets/enemy_escar_grunt.png",
+    enemyMediGrunt1: "assets/enemy_medi_grunt1.png",
+    enemyMediGrunt2: "assets/enemy_medi_grunt2.png",
+    enemyOriaGrunt: "assets/enemy_oria_grunt.png",
     portraitLena: "assets/portrait_lena.png",
     portraitRione: "assets/portrait_rione.png",
     portraitCoralia: "assets/portrait_coralia.png",
     portraitEscar: "assets/portrait_escar.png",
     portraitShera: "assets/portrait_shera.png",
+    portraitOria: "assets/portrait_oria.png",
+    portraitMedi: "assets/portrait_medi.png",
+    portraitMediSerious: "assets/portrait_medi_serious.png",
+    // エンディング1枚絵(未提供)。ファイルが無ければ描画側がグラデーションで代替する。
+    ending1: "assets/ending_1.png",
+    ending2: "assets/ending_2.png",
   },
 
   colors: {
@@ -82,6 +95,19 @@ Game.CONFIG = {
     glowColor: "rgba(255, 200, 230, 0.4)",
   },
 
+  // 直線レーザーのデフォルト見た目/尺(enemyLasers.js参照)。3面のオリア/メディで初めて使う。
+  enemyLaser: {
+    warnDuration: 0.55,
+    fireDuration: 0.5,
+    fadeDuration: 0.25,
+    warnWidth: 2,
+    fireWidth: 7,
+    length: 460,
+    color: "rgba(180, 210, 255, 0.92)",
+    glowColor: "rgba(200, 225, 255, 0.4)",
+    warnColor: "rgba(255, 255, 255, 0.55)",
+  },
+
   miss: {
     flashDuration: 0.9,
     flashInterval: 0.08,
@@ -93,6 +119,8 @@ Game.CONFIG = {
     defeatFlashDuration: 1.0,
     defeatFlashInterval: 0.08,
     entryDuration: 1.2,
+    // 立ち絵差し替え(本気モード移行)の演出尺。メディの3→4パターン目でのみ使う。
+    formFlashDuration: 1.1,
   },
 
   score: {
@@ -100,6 +128,8 @@ Game.CONFIG = {
     fishGrunt: 120,
     lionfishGrunt: 110,
     anglerGrunt: 130,
+    mediGrunt: 140,
+    oriaGrunt: 150,
     miniboss: 3000,
     boss: 10000,
     clearBonus: 2000,
@@ -109,6 +139,7 @@ Game.CONFIG = {
   pool: {
     playerBullets: 120,
     enemyBullets: 420,
+    enemyLasers: 16,
   },
 
   ui: {

@@ -3,10 +3,11 @@
 Game.STAGES = {
   1: Game.STAGE1,
   2: Game.STAGE2,
+  3: Game.STAGE3,
 };
 
 Game.STAGE_ROSTER = [
   { number: 1, name: Game.STAGE1.title, implemented: true },
   { number: 2, name: Game.STAGE2.title, implemented: true },
-  { number: 3, name: "???", implemented: false },
+  { number: 3, name: Game.STAGE3.title, implemented: true },
 ];

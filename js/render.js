@@ -5,6 +5,7 @@ Game.assets = {
   bosses: {},
   grunts: {},
   portraits: {},
+  illustrations: {},
 };
 
 Game.loadImage = function loadImage(src) {
@@ -16,55 +17,64 @@ Game.loadImage = function loadImage(src) {
   });
 };
 
+// アセットの宣言的マニフェスト。新しい絵を足す時はここに1行増やすだけでよい
+// (以前は位置引数のPromise.allを手作業で並べていて、3面以降で本数が増えると事故りやすかった)。
+// bucket:"playerBack" だけは Game.assets.playerBack/playerBackReady という特別な形で使われている
+// 既存の参照(player.js)を壊さないよう、ロード後に個別代入する。
+Game.ASSET_MANIFEST = function buildAssetManifest(cfg) {
+  return [
+    { bucket: "backgrounds", key: 1, path: cfg.background1 },
+    { bucket: "backgrounds", key: 2, path: cfg.background2 },
+    { bucket: "backgrounds", key: 3, path: cfg.background3 },
+    { bucket: "playerBack", key: "playerBack", path: cfg.playerBack },
+
+    { bucket: "bosses", key: "lena", path: cfg.bossLena },
+    { bucket: "bosses", key: "rione", path: cfg.bossRione },
+    { bucket: "bosses", key: "coralia", path: cfg.bossCoralia },
+    { bucket: "bosses", key: "escar", path: cfg.bossEscar },
+    { bucket: "bosses", key: "oria", path: cfg.bossOria },
+    { bucket: "bosses", key: "medi", path: cfg.bossMedi },
+    { bucket: "bosses", key: "mediSerious", path: cfg.bossMediSerious },
+
+    { bucket: "grunts", key: "eelGrunt", path: cfg.enemyLenaGrunt },
+    { bucket: "grunts", key: "fishGrunt", path: cfg.enemyRioneGrunt },
+    { bucket: "grunts", key: "lionfishGrunt", path: cfg.enemyCoraliaGrunt },
+    { bucket: "grunts", key: "anglerGrunt", path: cfg.enemyEscarGrunt },
+    { bucket: "grunts", key: "mediGrunt1", path: cfg.enemyMediGrunt1 },
+    { bucket: "grunts", key: "mediGrunt2", path: cfg.enemyMediGrunt2 },
+    { bucket: "grunts", key: "oriaGrunt", path: cfg.enemyOriaGrunt },
+
+    { bucket: "portraits", key: "lena", path: cfg.portraitLena },
+    { bucket: "portraits", key: "rione", path: cfg.portraitRione },
+    { bucket: "portraits", key: "coralia", path: cfg.portraitCoralia },
+    { bucket: "portraits", key: "escar", path: cfg.portraitEscar },
+    // シェーラは戦闘に出ないのでbossesエントリは無く、会話用の立ち絵だけ持つ。
+    { bucket: "portraits", key: "shera", path: cfg.portraitShera },
+    { bucket: "portraits", key: "oria", path: cfg.portraitOria },
+    { bucket: "portraits", key: "medi", path: cfg.portraitMedi },
+    { bucket: "portraits", key: "mediSerious", path: cfg.portraitMediSerious },
+
+    // エンディング1枚絵。未提供の間はready:falseのままになり、描画側がグラデーションで代替する。
+    { bucket: "illustrations", key: "ending1", path: cfg.ending1 },
+    { bucket: "illustrations", key: "ending2", path: cfg.ending2 },
+  ];
+};
+
 Game.loadAssets = async function loadAssets() {
   const cfg = Game.CONFIG.assets;
+  const manifest = Game.ASSET_MANIFEST(cfg);
 
-  const [
-    bg1, bg2, playerBack,
-    bossLena, bossRione, bossCoralia, bossEscar,
-    eelGrunt, fishGrunt, coraliaGrunt, escarGrunt,
-    portraitLena, portraitRione, portraitCoralia, portraitEscar, portraitShera,
-  ] = await Promise.all([
-    Game.loadImage(cfg.background1),
-    Game.loadImage(cfg.background2),
-    Game.loadImage(cfg.playerBack),
-    Game.loadImage(cfg.bossLena),
-    Game.loadImage(cfg.bossRione),
-    Game.loadImage(cfg.bossCoralia),
-    Game.loadImage(cfg.bossEscar),
-    Game.loadImage(cfg.enemyLenaGrunt),
-    Game.loadImage(cfg.enemyRioneGrunt),
-    Game.loadImage(cfg.enemyCoraliaGrunt),
-    Game.loadImage(cfg.enemyEscarGrunt),
-    Game.loadImage(cfg.portraitLena),
-    Game.loadImage(cfg.portraitRione),
-    Game.loadImage(cfg.portraitCoralia),
-    Game.loadImage(cfg.portraitEscar),
-    Game.loadImage(cfg.portraitShera),
-  ]);
+  const loaded = await Promise.all(manifest.map((entry) => Game.loadImage(entry.path)));
 
-  Game.assets.backgrounds[1] = { image: bg1.image, ready: bg1.ok };
-  Game.assets.backgrounds[2] = { image: bg2.image, ready: bg2.ok };
-
-  Game.assets.playerBack = playerBack.image;
-  Game.assets.playerBackReady = playerBack.ok;
-
-  Game.assets.bosses.lena = { image: bossLena.image, ready: bossLena.ok };
-  Game.assets.bosses.rione = { image: bossRione.image, ready: bossRione.ok };
-  Game.assets.bosses.coralia = { image: bossCoralia.image, ready: bossCoralia.ok };
-  Game.assets.bosses.escar = { image: bossEscar.image, ready: bossEscar.ok };
-
-  Game.assets.grunts.eelGrunt = { image: eelGrunt.image, ready: eelGrunt.ok };
-  Game.assets.grunts.fishGrunt = { image: fishGrunt.image, ready: fishGrunt.ok };
-  Game.assets.grunts.lionfishGrunt = { image: coraliaGrunt.image, ready: coraliaGrunt.ok };
-  Game.assets.grunts.anglerGrunt = { image: escarGrunt.image, ready: escarGrunt.ok };
-
-  Game.assets.portraits.lena = { image: portraitLena.image, ready: portraitLena.ok };
-  Game.assets.portraits.rione = { image: portraitRione.image, ready: portraitRione.ok };
-  Game.assets.portraits.coralia = { image: portraitCoralia.image, ready: portraitCoralia.ok };
-  Game.assets.portraits.escar = { image: portraitEscar.image, ready: portraitEscar.ok };
-  // シェーラは戦闘に出ないのでbossesエントリは無く、会話用の立ち絵だけ持つ。
-  Game.assets.portraits.shera = { image: portraitShera.image, ready: portraitShera.ok };
+  manifest.forEach((entry, i) => {
+    const result = loaded[i];
+    if (entry.bucket === "playerBack") {
+      Game.assets.playerBack = result.image;
+      Game.assets.playerBackReady = result.ok;
+      return;
+    }
+    Game.assets[entry.bucket][entry.key] = { image: result.image, ready: result.ok };
+  });
 };
 
 Game.drawBackground = function drawBackground(ctx) {

@@ -7,6 +7,8 @@ Game.STATES = {
   PAUSED: "PAUSED",
   GAME_OVER: "GAME_OVER",
   STAGE_CLEAR: "STAGE_CLEAR",
+  ENDING: "ENDING",
+  FINAL_CLEAR: "FINAL_CLEAR",
 };
 
 Game.state = Game.STATES.TITLE;
@@ -26,7 +28,17 @@ Game.setState = function setState(next) {
 // プレビュー環境などlocalStorageが使えない場合でも落ちないよう、
 // 読み書きは必ずtry-catchで囲み、失敗時はメモリ上の初期値のまま進行する。
 Game.SAVE_KEY = "pelagia_save_v1";
-Game.saveData = { clearedThrough: 0, highScores: {} };
+Game.saveData = {
+  clearedThrough: 0,
+  highScores: {},
+  fullCleared: false, // 3面をSTORYで一度でもクリアしたか(=本編クリア済み)
+  endingSeen: false, // エンディングを一度でも見たか(将来の分岐エンド用にfullClearedとは意図的に分離)
+  totalBestScore: 0, // 1〜3面合計スコアの自己ベスト
+};
+
+// 1〜3面のGame.scoreを合算する一時変数。メモリのみ保持(セーブしない)。
+// STORY通しプレイは各面ごとに個別のstartRun呼び出しなので、ここに積み上げていく。
+Game.storyTotalScore = 0;
 
 Game.loadSaveData = function loadSaveData() {
   try {
@@ -35,6 +47,9 @@ Game.loadSaveData = function loadSaveData() {
       const parsed = JSON.parse(raw);
       Game.saveData.clearedThrough = Number(parsed.clearedThrough) || 0;
       Game.saveData.highScores = (parsed.highScores && typeof parsed.highScores === "object") ? parsed.highScores : {};
+      Game.saveData.fullCleared = !!parsed.fullCleared;
+      Game.saveData.endingSeen = !!parsed.endingSeen;
+      Game.saveData.totalBestScore = Number(parsed.totalBestScore) || 0;
     }
   } catch (e) {
     // localStorage不可の環境。初期値のまま続行する。
@@ -87,6 +102,7 @@ Game.finalizeStageResult = function finalizeStageResult() {
     Game.markStageCleared(Game.currentStageNumber);
     isNewBest = Game.recordHighScore(Game.currentStageNumber, Game.score);
     bestScore = Game.saveData.highScores[String(Game.currentStageNumber)] || Game.score;
+    Game.storyTotalScore += Game.score;
   }
 
   Game.lastResult = {
@@ -96,6 +112,21 @@ Game.finalizeStageResult = function finalizeStageResult() {
     breakdown: Object.assign({}, Game.scoreBreakdown),
     runMode: Game.runMode,
   };
+};
+
+// 3面分の合計スコアを自己ベストと比較して記録する。3面クリア(エンディング開始)時にだけ呼ぶ。
+Game.finalizeStoryTotalScore = function finalizeStoryTotalScore() {
+  const total = Game.storyTotalScore;
+  let isNewBestTotal = false;
+  if (total > Game.saveData.totalBestScore) {
+    Game.saveData.totalBestScore = total;
+    isNewBestTotal = true;
+    Game.persistSaveData();
+  }
+  Game.lastResult = Game.lastResult || {};
+  Game.lastResult.totalScore = total;
+  Game.lastResult.isNewBestTotal = isNewBestTotal;
+  Game.lastResult.bestTotalScore = Game.saveData.totalBestScore;
 };
 
 // stageNumberを指定して1面を最初から始める。プール・敵・ボスをすべて初期状態に戻す。
@@ -111,9 +142,13 @@ Game.startRun = function startRun(stageNumber) {
   Game.player.init();
   Game.playerBullets.items.forEach((b) => { b.active = false; });
   Game.enemyBullets.items.forEach((b) => { b.active = false; });
+  Game.clearActiveLasers();
   Game.grunts.length = 0;
   Game.pendingGruntSpawns.length = 0;
   Game.activeBoss = null;
+  Game.cutsceneActors = {};
+  Game.cutsceneImage = null;
+  Game.dialogue.fadeOverlay = null;
 
   Game.setState(Game.STATES.PLAYING);
   Game.startStage(Game.STAGES[stageNumber]);

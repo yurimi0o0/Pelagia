@@ -27,8 +27,14 @@ Game.enterStagePhase = function enterStagePhase(index) {
   runner.spawnedFlags = new Set();
 
   if (index >= stage.phases.length) {
-    Game.finalizeStageResult();
-    Game.setState(Game.STATES.STAGE_CLEAR);
+    // 最終面をSTORYでクリアした時だけ、通常のSTAGE_CLEARではなく真のエンディングへ分岐する。
+    // 練習プレイでの3面クリアはこれまで通りSTAGE_CLEARのまま(セーブもSTORY限定のため)。
+    if (stage.isFinalStage && Game.runMode === "STORY") {
+      Game.startEndingSequence();
+    } else {
+      Game.finalizeStageResult();
+      Game.setState(Game.STATES.STAGE_CLEAR);
+    }
     return;
   }
 

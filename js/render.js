@@ -3,6 +3,8 @@ Game.assets = {
   backgroundReady: false,
   playerBack: null,
   playerBackReady: false,
+  bosses: {},
+  grunts: {},
 };
 
 Game.loadImage = function loadImage(src) {
@@ -15,16 +17,28 @@ Game.loadImage = function loadImage(src) {
 };
 
 Game.loadAssets = async function loadAssets() {
-  const [bg, playerBack] = await Promise.all([
-    Game.loadImage(Game.CONFIG.assets.background),
-    Game.loadImage(Game.CONFIG.assets.playerBack),
+  const cfg = Game.CONFIG.assets;
+
+  const [bg, playerBack, bossLena, bossRione, eelGrunt, fishGrunt] = await Promise.all([
+    Game.loadImage(cfg.background),
+    Game.loadImage(cfg.playerBack),
+    Game.loadImage(cfg.bossLena),
+    Game.loadImage(cfg.bossRione),
+    Game.loadImage(cfg.enemyLenaGrunt),
+    Game.loadImage(cfg.enemyRioneGrunt),
   ]);
+
   Game.assets.background = bg.image;
   Game.assets.backgroundReady = bg.ok;
-  // player.isPlaceholder が true の間は読み込めても使わずシルエットのままにする
-  // （現状のPNGはアルファ無しで透過チェッカーが焼き込まれているため）。
+
   Game.assets.playerBack = playerBack.image;
   Game.assets.playerBackReady = playerBack.ok;
+
+  Game.assets.bosses.lena = { image: bossLena.image, ready: bossLena.ok };
+  Game.assets.bosses.rione = { image: bossRione.image, ready: bossRione.ok };
+
+  Game.assets.grunts.eelGrunt = { image: eelGrunt.image, ready: eelGrunt.ok };
+  Game.assets.grunts.fishGrunt = { image: fishGrunt.image, ready: fishGrunt.ok };
 };
 
 Game.drawBackground = function drawBackground(ctx) {

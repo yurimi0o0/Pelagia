@@ -1,12 +1,31 @@
 (function main() {
   const CONFIG = Game.CONFIG;
+  const S = Game.STATES;
 
   function update(dt) {
+    if (Game.state !== S.PLAYING) return;
+
     Game.player.update(dt);
     Game.updatePlayerBullets(dt);
-    Game.updateEnemies(dt);
+    Game.updateGrunts(dt);
+    Game.updateBoss(dt);
     Game.updateEnemyBullets(dt);
+    Game.updateStageRunner(dt);
     Game.resolveCollisions();
+  }
+
+  // PLAYING以外(PAUSED/GAME_OVER/STAGE_CLEAR)でもゲーム世界はそのまま(静止した状態で)描画する。
+  function drawWorld(ctx) {
+    Game.drawBackground(ctx);
+    Game.drawGrunts(ctx);
+    Game.drawBoss(ctx);
+    Game.drawPlayerBullets(ctx);
+    Game.player.drawSway(ctx);
+    Game.player.draw(ctx);
+    if (CONFIG.debug.showHitCircle) Game.player.drawHitCircle(ctx);
+    Game.drawEnemyBullets(ctx); // 避けるべき弾は最前面で視認性を優先
+    Game.drawHUD(ctx);
+    Game.drawBossBar(ctx);
   }
 
   function render() {
@@ -25,13 +44,18 @@
     ctx.rect(0, 0, CONFIG.world.width, CONFIG.world.height);
     ctx.clip();
 
-    Game.drawBackground(ctx);
-    Game.drawEnemies(ctx);
-    Game.drawPlayerBullets(ctx);
-    Game.player.drawSway(ctx);
-    Game.player.draw(ctx);
-    if (CONFIG.debug.showHitCircle) Game.player.drawHitCircle(ctx);
-    Game.drawEnemyBullets(ctx); // 避けるべき弾は最前面で視認性を優先
+    if (Game.state === S.TITLE) {
+      Game.drawBackground(ctx);
+      Game.drawTitle(ctx);
+    } else if (Game.state === S.STAGE_SELECT) {
+      Game.drawBackground(ctx);
+      Game.drawStageSelect(ctx);
+    } else {
+      drawWorld(ctx);
+      if (Game.state === S.PAUSED) Game.drawPauseOverlay(ctx);
+      else if (Game.state === S.GAME_OVER) Game.drawGameOver(ctx);
+      else if (Game.state === S.STAGE_CLEAR) Game.drawStageClear(ctx);
+    }
 
     ctx.restore();
 
@@ -59,7 +83,6 @@
     document.documentElement.style.setProperty("--page-bg", CONFIG.colors.pageBackground);
 
     Game.player.init();
-    Game.spawnStage(Game.STAGE1);
 
     Game.resizeCanvas();
     Game.setupInput();

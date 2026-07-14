@@ -39,6 +39,13 @@ Game.WAVES = {
 };
 
 Game.STAGE1 = {
+  title: "深海の回廊",
+  // 面開始時に流す短い会話。ステージ側に持たせておくことで、面ごとに差し替えられる。
+  dialogue: {
+    stageStart: [
+      { speaker: "ジェリー", text: "深海灯を見つけないと…浅海のみんなのために。" },
+    ],
+  },
   phases: [
     {
       type: "waves",

@@ -86,6 +86,8 @@ Game.CONFIG = {
     fishGrunt: 120,
     miniboss: 3000,
     boss: 10000,
+    clearBonus: 2000,
+    noMissBonus: 5000,
   },
 
   pool: {
@@ -108,6 +110,7 @@ Game.CONFIG = {
     buttonStroke: "rgba(227, 201, 138, 0.75)",
     overlayFill: "rgba(8, 10, 16, 0.62)",
     lifeColor: "rgba(248, 209, 140, 0.95)",
+    dimTextColor: "rgba(210, 210, 220, 0.42)",
   },
 
   debug: {

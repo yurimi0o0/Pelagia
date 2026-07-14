@@ -77,7 +77,7 @@ Game.damageGrunt = function damageGrunt(grunt, amount) {
   grunt.hp -= amount;
   if (grunt.hp <= 0 && grunt.alive) {
     grunt.alive = false;
-    Game.score += Game.ENEMY_DEFS[grunt.type].score;
+    Game.addScore(Game.ENEMY_DEFS[grunt.type].score, "kills");
   }
 };
 

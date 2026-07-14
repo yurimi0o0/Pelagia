@@ -55,6 +55,7 @@
       if (Game.state === S.PAUSED) Game.drawPauseOverlay(ctx);
       else if (Game.state === S.GAME_OVER) Game.drawGameOver(ctx);
       else if (Game.state === S.STAGE_CLEAR) Game.drawStageClear(ctx);
+      else if (Game.state === S.DIALOGUE) Game.drawDialogueBox(ctx);
     }
 
     ctx.restore();
@@ -82,6 +83,7 @@
     Game.ctx = Game.canvas.getContext("2d");
     document.documentElement.style.setProperty("--page-bg", CONFIG.colors.pageBackground);
 
+    Game.loadSaveData();
     Game.player.init();
 
     Game.resizeCanvas();

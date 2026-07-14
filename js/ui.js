@@ -110,7 +110,6 @@
     ctx.fill();
     ctx.restore();
   }
-  Game.drawDivider = drawDivider; // dialogue.jsの名乗り演出からも使う
 
   // 淡い後光を重ねた見出し文字。
   function drawGlowTitle(ctx, text, cx, cy, fontSize) {
@@ -132,7 +131,6 @@
     ctx.fillText(text, cx, cy);
     ctx.restore();
   }
-  Game.drawGlowTitle = drawGlowTitle; // dialogue.jsの名乗り演出からも使う
 
   function drawDim(ctx, fill) {
     const w = Game.CONFIG.world;

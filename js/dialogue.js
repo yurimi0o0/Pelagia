@@ -6,8 +6,14 @@ Game.SPEAKER_PORTRAITS = {
   "リオネ": "rione",
   "コーリア": "coralia",
   "エスカー": "escar",
-  // シェーラは立ち絵未提供のため、当面はテキストのみで表示する。
+  "シェーラ": "shera",
 };
+
+// 台詞文中にこれらの名前が現れたら色を変える(「名乗り」演出の代わり)。
+// 長い名前を先に判定しないと部分一致で崩れるので長さ降順に並べておく。
+Game.CHARACTER_NAMES = [
+  "ジェリー", "レーナ", "リオネ", "コーリア", "エスカー", "シェーラ", "シェリー", "オリア", "メディ",
+].sort((a, b) => b.length - a.length);
 
 Game.dialogue = {
   lines: [],
@@ -38,62 +44,47 @@ Game.advanceDialogue = function advanceDialogue() {
 };
 
 (function () {
-  // 日本語は単語区切りが無いので、文字単位で幅を測って折り返す。
-  function wrapText(ctx, text, maxWidth) {
-    const chars = Array.from(text);
-    const lines = [];
-    let current = "";
-    chars.forEach((ch) => {
-      const test = current + ch;
-      if (current.length > 0 && ctx.measureText(test).width > maxWidth) {
-        lines.push(current);
-        current = ch;
+  // テキストを「名前と、それ以外」の文字単位の列に分解する。人名は1文字ずつでも
+  // isName:true のフラグを引き継ぐので、後段の折り返し処理は普通の文字列と同じに扱える。
+  function tokenizeChars(text) {
+    const names = Game.CHARACTER_NAMES;
+    const chars = [];
+    let i = 0;
+    while (i < text.length) {
+      const matched = names.find((name) => text.startsWith(name, i));
+      if (matched) {
+        Array.from(matched).forEach((ch) => chars.push({ ch, isName: true }));
+        i += matched.length;
       } else {
-        current = test;
+        chars.push({ ch: text[i], isName: false });
+        i += 1;
       }
-    });
-    if (current) lines.push(current);
-    return lines;
+    }
+    return chars;
   }
 
-  // 六英傑の「名乗り」演出。会話の行配列に { nameReveal:true, speaker, epithet, title } を
-  // 混ぜるだけで、通常の台詞行と同じタップ送りの流れに乗る(2面以降のボスでも使い回せる)。
-  function drawNameReveal(ctx, line) {
-    const w = Game.CONFIG.world;
-    const ui = Game.CONFIG.ui;
-
-    ctx.save();
-    ctx.fillStyle = "rgba(4, 6, 12, 0.55)";
-    ctx.fillRect(0, 0, w.width, w.height);
-
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = `600 15px ${ui.bodyFont}`;
-    ctx.fillStyle = ui.subTextColor;
-    ctx.fillText(line.epithet, w.width / 2, 300);
-
-    Game.drawGlowTitle(ctx, line.speaker, w.width / 2, 345, 34);
-    Game.drawDivider(ctx, w.width / 2, 368, 160);
-
-    ctx.font = `italic 400 14px ${ui.bodyFont}`;
-    ctx.fillStyle = ui.accentGold;
-    ctx.fillText(line.title, w.width / 2, 392);
-
-    if (Math.floor(performance.now() / 450) % 2 === 0) {
-      ctx.font = `600 11px ${ui.bodyFont}`;
-      ctx.fillStyle = ui.subTextColor;
-      ctx.fillText("▼ タップで続ける", w.width / 2, 460);
-    }
-    ctx.restore();
+  // 日本語は単語区切りが無いので、文字単位で幅を測って折り返す。
+  function wrapChars(ctx, chars, maxWidth) {
+    const lines = [];
+    let current = [];
+    let currentWidth = 0;
+    chars.forEach((entry) => {
+      const w = ctx.measureText(entry.ch).width;
+      if (current.length > 0 && currentWidth + w > maxWidth) {
+        lines.push(current);
+        current = [];
+        currentWidth = 0;
+      }
+      current.push(entry);
+      currentWidth += w;
+    });
+    if (current.length) lines.push(current);
+    return lines;
   }
 
   Game.drawDialogueBox = function drawDialogueBox(ctx) {
     const line = Game.dialogue.lines[Game.dialogue.index];
     if (!line) return;
-    if (line.nameReveal) {
-      drawNameReveal(ctx, line);
-      return;
-    }
     const w = Game.CONFIG.world;
     const ui = Game.CONFIG.ui;
 
@@ -140,10 +131,16 @@ Game.advanceDialogue = function advanceDialogue() {
     ctx.font = `700 15px ${ui.bodyFont}`;
     ctx.fillText(line.speaker, boxX + 18, boxY + 28);
 
-    ctx.fillStyle = ui.textColor;
     ctx.font = `400 15px ${ui.bodyFont}`;
-    wrapText(ctx, line.text, boxW - 36).forEach((l, i) => {
-      ctx.fillText(l, boxX + 18, boxY + 54 + i * 22);
+    const wrapped = wrapChars(ctx, tokenizeChars(line.text), boxW - 36);
+    wrapped.forEach((lineChars, i) => {
+      let x = boxX + 18;
+      const y = boxY + 54 + i * 22;
+      lineChars.forEach((entry) => {
+        ctx.fillStyle = entry.isName ? ui.nameHighlight : ui.textColor;
+        ctx.fillText(entry.ch, x, y);
+        x += ctx.measureText(entry.ch).width;
+      });
     });
 
     if (Math.floor(performance.now() / 450) % 2 === 0) {

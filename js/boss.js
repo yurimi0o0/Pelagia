@@ -21,18 +21,15 @@ Game.BOSS_DEFS = {
     // レーナは事情を知らず、ただ"面白そうな獲物"としてジェリーに絡んでくる。
     dialogue: {
       beforeBattle: [
-        { nameReveal: true, speaker: "レーナ", epithet: "第四英傑", title: "裂潮の猟姫" },
-        { speaker: "レーナ", text: "……お。めずらしい。こんな浅いとこの子が、なんでこんな下まで来てるんだい？" },
+        { speaker: "レーナ", text: "……お。めずらしいな。こんな浅いとこの子が、なんでこんな下まで来てるんだ？" },
         { speaker: "ジェリー", text: "深海灯を探しに行くの。通してくれる？" },
-        { speaker: "レーナ", text: "ふうん、まぁ、無謀だと思うけど" },
-        { speaker: "レーナ", text: "あぁ、でもちょうどいいや。暇だったんだ。" },
-        { speaker: "レーナ", text: "そこの浅瀬の魚。ちょっと遊びな。六英傑のあたしから逃げ切れたら通してあげる。ここはまだ浅い所だし。" },
+        { speaker: "レーナ", text: "ふうん、まぁ、無謀だと思うが。" },
+        { speaker: "レーナ", text: "あぁ、でもちょうどいいか。暇だったんだ。" },
+        { speaker: "レーナ", text: "そこの浅瀬の魚。ちょっと遊びな。この六英傑のレーナから逃げ切れたら通してあげよう。ここはまだ浅い所だから、怒られないだろう。" },
       ],
       afterDefeat: [
-        { speaker: "レーナ", text: "……へえ。やるじゃん。思ったより強いんだね、あんた。" },
-        { speaker: "レーナ", text: "いいよ、行きな。深いとこは、あんたが思ってるよりずっと物騒だけど。" },
-        { speaker: "ジェリー", text: "うん……ありがとう、レーナ。" },
-        { speaker: "レーナ", text: "礼はいらないよ。あたしはただ、面白い方を選んだだけ。" },
+        { speaker: "レーナ", text: "……へえ。思ったより強いんだね、あんた。" },
+        { speaker: "レーナ", text: "いいよ、行きな。深いとこは、あんたが思ってるよりずっと物騒だとおもうが。" },
       ],
     },
     // 設定資料の弾幕描写のうち、岩陰から飛び出す弾列/左右から挟む噛みつき弾の2形態のみ採用。
@@ -76,14 +73,13 @@ Game.BOSS_DEFS = {
     // リオネは"知っていて、心配して"止める。1面ボスだが実は一番ジェリーに優しい。
     dialogue: {
       beforeBattle: [
-        { nameReveal: true, speaker: "リオネ", epithet: "第一英傑", title: "白光の先導者" },
         { speaker: "リオネ", text: "そこまで。……あなた、浅海の子ね。" },
         { speaker: "ジェリー", text: "お願い、通して。深海灯を探しに行くの。" },
         { speaker: "リオネ", text: "深海灯。……ここから先へ行って、生きて帰れるの？" },
         { speaker: "ジェリー", text: "帰るよ。光を持って、みんなのところに帰る。" },
         { speaker: "リオネ", text: "（…この子は、何も知らないのね。）" },
         { speaker: "リオネ", text: "ごめんなさい。わたしは、浅海のものをここから先へ行かすことはできない。" },
-        { speaker: "リオネ", text: "わたしはここで引き返す者を導く者であり続ける。……それが、六英傑の一人として、あなたを守ることでもあるから。" },
+        { speaker: "リオネ", text: "わたしはここで引き返す者を導く者であり続ける。……それが、六英傑の一人として、あなたを守ることでもあり、わたしリオネの指名であるから。" },
       ],
       afterDefeat: [
         { speaker: "リオネ", text: "……強い子。止められなかったわね。" },
@@ -113,13 +109,15 @@ Game.BOSS_DEFS = {
         kind: "featherFall",
         hpThreshold: 0.33,
         params: {
-          interval: 0.22,
+          // 安置が多いとの指摘を受け、間隔短縮+レーン巡回(後述)で画面幅を満遍なく埋めるように調整。
+          interval: 0.15,
+          lanes: 6,
           speed: 45,
           radius: 4,
           color: "rgba(255, 255, 255, 0.92)",
           glowColor: "rgba(255, 255, 255, 0.35)",
-          waveAmp: 18,
-          waveFreq: 1.8,
+          waveAmp: 24,
+          waveFreq: 2.2,
         },
       },
       {
@@ -127,9 +125,10 @@ Game.BOSS_DEFS = {
         // 最終形態に入る直前だけ挟む短い一言。
         beforePattern: [{ speaker: "リオネ", text: "決意は強いのね。" }],
         params: {
-          interval: 0.5,
-          count: 3,
-          spreadAngle: 0.5,
+          // 安置が多いとの指摘を受け、弾数/扇の角度を増やし、間隔を詰めた。
+          interval: 0.42,
+          count: 5,
+          spreadAngle: 0.85,
           speed: 55,
           radius: 7,
           color: "rgba(220, 235, 255, 0.85)",
@@ -152,7 +151,6 @@ Game.BOSS_DEFS = {
     // コーリアは浅海を信用していない。誇り高く、短気で、縄張りを侵す者を露骨に敵視する。
     dialogue: {
       beforeBattle: [
-        { nameReveal: true, speaker: "コーリア", epithet: "第二英傑", title: "紅礁の女公" },
         { speaker: "コーリア", text: "……また上の者が、深海から何かを奪いに来たのか。" },
         { speaker: "ジェリー", text: "奪うんじゃないよ。深海灯を、借りに——" },
         { speaker: "コーリア", text: "借りる？ 笑わせるでない。昔もそう言って、妾らの珊瑚を、宝物を、根こそぎ持っていったであろう。" },
@@ -171,8 +169,9 @@ Game.BOSS_DEFS = {
         kind: "coralBranch",
         hpThreshold: 0.5,
         params: {
-          interval: 1.4,
-          speed: 95,
+          // 全体的にヌルすぎるとの指摘を受け、間隔を大幅に詰めて弾速も上げた。
+          interval: 0.85,
+          speed: 105,
           radius: 4,
           color: "rgba(255, 110, 110, 0.92)",
           glowColor: "rgba(255, 150, 150, 0.4)",
@@ -181,9 +180,10 @@ Game.BOSS_DEFS = {
       {
         kind: "coralGrowth",
         params: {
-          interval: 1.8,
-          columns: 3,
-          speed: 70,
+          // 固定3列は安置になりやすいので列数を増やし、波ごとに半列分ずらして安置を固定させない。
+          interval: 1.2,
+          columns: 4,
+          speed: 78,
           radius: 4,
           color: "rgba(255, 90, 90, 0.92)",
           glowColor: "rgba(255, 140, 140, 0.4)",
@@ -197,7 +197,7 @@ Game.BOSS_DEFS = {
     epithet: "第五英傑",
     title: "誘灯の魔光",
     sprite: "assets/boss_escar.png",
-    spriteWidth: 97,
+    spriteWidth: 106,
     spriteHeight: 130,
     radius: 36,
     hp: 620,
@@ -206,14 +206,13 @@ Game.BOSS_DEFS = {
       // 会話開始時点でエスカーとシェーラはすでに言い争っている(ジェリーはまだ登場していない体)。
       beforeBattle: [
         { speaker: "シェーラ", text: "エスカー。何度言ったらわかるの。英傑のくせに深海灯を奪うことしか考えていない。" },
-        { speaker: "エスカー", text: "何度も言われているから流石に懲りてるわよ〜。でも、浅海の子が来てるらしいのよっ？気になるじゃない♪" },
+        { speaker: "エスカー", text: "何度も言われているから流石に懲りてるわよ〜。シェリーもしつこいわね。" },
+        { speaker: "エスカー", text: "浅海の子が来てるらしいのよっ？気になるじゃない♪" },
         { speaker: "シェーラ", text: "やはりあの浅海の子を…。" },
         { speaker: "シェーラ", text: "知らないことは罪ではありません。ですが、知らずに壊すことは罪になります。あの子は、何も知らない。" },
         { speaker: "エスカー", text: "だからいいんじゃないの。何も知らないほうが、よく光るわ♪" },
         { speaker: "ジェリー", text: "……あの、深海灯って、いいました…？" },
         { speaker: "エスカー", text: "あらあら♪ ちょうどいいところに。ようこそ、迷える光の子。" },
-        { nameReveal: true, speaker: "エスカー", epithet: "第五英傑", title: "誘灯の魔光" },
-        { speaker: "エスカー", text: "第五英傑のエスカーよ。よろしくね、迷える光の子♪" },
         { speaker: "エスカー", text: "ねえ、あなた。深海灯が欲しいんでしょう？ なら——わたしのものにおなりなさい♪" },
         { speaker: "ジェリー", text: "え——っ、ちょっ、なに、引っぱらな…！" },
         { speaker: "シェーラ", text: "（あぁ…始まってしまった…。）" },
@@ -261,6 +260,12 @@ Game.BOSS_DEFS = {
       },
       {
         kind: "decoyMix",
+        // 最終形態に入る直前だけ挟む短いやり取り。
+        beforePattern: [
+          { speaker: "エスカー", text: "手強いわねっ。本気を出すしかないわね…。" },
+          { speaker: "シェーラ", text: "小さい子をやめるのはっ…" },
+          { speaker: "エスカー", text: "シェーラは戦えないんだからっ♪いくわよっ♪" },
+        ],
         params: {
           interval: 0.45,
           count: 5,
@@ -351,6 +356,8 @@ Game.BOSS_PATTERNS = {
   },
 
   // リオネ第2形態：雪や羽根のように、画面上から白い弾がゆらゆら降ってくる。
+  // 完全ランダムな位置だと運悪く安置ができるので、レーン(lanes)を順番に巡回して
+  // 画面幅を均等に埋めつつ、レーン内だけ揺らして自然さを保つ。
   featherFall(boss, pattern, dt) {
     const params = pattern.params;
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
@@ -358,7 +365,10 @@ Game.BOSS_PATTERNS = {
     boss.patternState.timer = params.interval;
 
     const w = Game.CONFIG.world;
-    const x = 20 + Math.random() * (w.width - 40);
+    const lanes = params.lanes;
+    boss.patternState.lane = ((boss.patternState.lane || 0) + 1) % lanes;
+    const laneWidth = (w.width - 40) / lanes;
+    const x = 20 + laneWidth * (boss.patternState.lane + 0.5) + (Math.random() - 0.5) * laneWidth * 0.6;
     Game.fireAngledBullet(x, -10, Math.PI / 2, params.speed, {
       ...params,
       wave: { amp: params.waveAmp, freq: params.waveFreq },
@@ -366,13 +376,15 @@ Game.BOSS_PATTERNS = {
   },
 
   // リオネ最終形態：ゆっくり降りてくる透明(輪郭のみ)の弾。優しいが逃げ場を絞る。
+  // 扇の向きをゆっくり左右へ揺らし、両端の隙間が固定の安置にならないようにする。
   clearDrops(boss, pattern, dt) {
     const params = pattern.params;
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
+    boss.patternState.wobble = (boss.patternState.wobble || 0) + 0.35;
 
-    const base = Math.PI / 2;
+    const base = Math.PI / 2 + Math.sin(boss.patternState.wobble) * 0.25;
     for (let i = 0; i < params.count; i += 1) {
       const offset = (i - (params.count - 1) / 2) * params.spreadAngle;
       Game.fireAngledBullet(boss.x, boss.y, base + offset, params.speed, params);
@@ -398,10 +410,13 @@ Game.BOSS_PATTERNS = {
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
+    // 列の間に固定の安置ができないよう、波ごとに半列分だけ左右へずらす。
+    boss.patternState.shift = !boss.patternState.shift;
 
     const w = Game.CONFIG.world;
+    const offset = boss.patternState.shift ? 0.5 / params.columns : 0;
     for (let i = 0; i < params.columns; i += 1) {
-      const x = ((i + 0.5) / params.columns) * w.width;
+      const x = ((i + 0.5) / params.columns + offset) * w.width;
       Game.fireShapeCluster(x, w.height + 24, Game.BULLET_SHAPES.coral, -Math.PI / 2, params.speed, params);
     }
   },

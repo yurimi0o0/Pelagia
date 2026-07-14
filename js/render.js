@@ -23,7 +23,7 @@ Game.loadAssets = async function loadAssets() {
     bg1, bg2, playerBack,
     bossLena, bossRione, bossCoralia, bossEscar,
     eelGrunt, fishGrunt, coraliaGrunt, escarGrunt,
-    portraitLena, portraitRione,
+    portraitLena, portraitRione, portraitCoralia, portraitEscar, portraitShera,
   ] = await Promise.all([
     Game.loadImage(cfg.background1),
     Game.loadImage(cfg.background2),
@@ -38,6 +38,9 @@ Game.loadAssets = async function loadAssets() {
     Game.loadImage(cfg.enemyEscarGrunt),
     Game.loadImage(cfg.portraitLena),
     Game.loadImage(cfg.portraitRione),
+    Game.loadImage(cfg.portraitCoralia),
+    Game.loadImage(cfg.portraitEscar),
+    Game.loadImage(cfg.portraitShera),
   ]);
 
   Game.assets.backgrounds[1] = { image: bg1.image, ready: bg1.ok };
@@ -58,9 +61,10 @@ Game.loadAssets = async function loadAssets() {
 
   Game.assets.portraits.lena = { image: portraitLena.image, ready: portraitLena.ok };
   Game.assets.portraits.rione = { image: portraitRione.image, ready: portraitRione.ok };
-  // コーリア/エスカーの専用立ち絵はまだ無いので、届くまでSD戦闘絵をそのまま会話にも使う。
-  Game.assets.portraits.coralia = Game.assets.bosses.coralia;
-  Game.assets.portraits.escar = Game.assets.bosses.escar;
+  Game.assets.portraits.coralia = { image: portraitCoralia.image, ready: portraitCoralia.ok };
+  Game.assets.portraits.escar = { image: portraitEscar.image, ready: portraitEscar.ok };
+  // シェーラは戦闘に出ないのでbossesエントリは無く、会話用の立ち絵だけ持つ。
+  Game.assets.portraits.shera = { image: portraitShera.image, ready: portraitShera.ok };
 };
 
 Game.drawBackground = function drawBackground(ctx) {

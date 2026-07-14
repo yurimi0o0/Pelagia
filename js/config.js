@@ -22,7 +22,9 @@ Game.CONFIG = {
     enemyEscarGrunt: "assets/enemy_escar_grunt.png",
     portraitLena: "assets/portrait_lena.png",
     portraitRione: "assets/portrait_rione.png",
-    // コーリア/エスカーの専用立ち絵は未提供のため、届くまでSD戦闘絵を会話立ち絵にも流用する。
+    portraitCoralia: "assets/portrait_coralia.png",
+    portraitEscar: "assets/portrait_escar.png",
+    portraitShera: "assets/portrait_shera.png",
   },
 
   colors: {
@@ -125,6 +127,8 @@ Game.CONFIG = {
     overlayFill: "rgba(8, 10, 16, 0.62)",
     lifeColor: "rgba(248, 209, 140, 0.95)",
     dimTextColor: "rgba(210, 210, 220, 0.42)",
+    // 台詞中に人名が出てきた時だけこの色にする(金系のテキスト/アクセントと被らない寒色)。
+    nameHighlight: "#a7d8ff",
   },
 
   debug: {

@@ -1,4 +1,5 @@
-// 敵弾。こちらもプール化。パターン関数を増やしていけば弾幕の種類を足せる形にしておく。
+// 敵弾。プール化した上で、角度/リング/自機狙いなど複数パターンから同じプールへ生成する。
+// 見た目(color/glowColor/radius)は呼び出し側でパターンごとに上書きできる。
 Game.enemyBullets = Game.createPool(Game.CONFIG.pool.enemyBullets, () => ({
   x: 0,
   y: 0,
@@ -6,23 +7,37 @@ Game.enemyBullets = Game.createPool(Game.CONFIG.pool.enemyBullets, () => ({
   vy: 0,
   radius: 0,
   life: 0,
+  color: null,
+  glowColor: null,
 }));
 
-// 全方位ばらまき（ジェリーフィッシュのパルス攻撃、というテイスト）。
-Game.fireRadialBurst = function fireRadialBurst(x, y) {
-  const cfg = Game.CONFIG.enemyBullet;
-  for (let i = 0; i < cfg.count; i += 1) {
-    const angle = (Math.PI * 2 * i) / cfg.count;
-    Game.enemyBullets.spawn((b) => {
+(function () {
+  function spawnEnemyBullet(x, y, vx, vy, opts) {
+    const cfg = Game.CONFIG.enemyBullet;
+    return Game.enemyBullets.spawn((b) => {
       b.x = x;
       b.y = y;
-      b.vx = Math.cos(angle) * cfg.speed;
-      b.vy = Math.sin(angle) * cfg.speed;
-      b.radius = cfg.radius;
-      b.life = cfg.lifetime;
+      b.vx = vx;
+      b.vy = vy;
+      b.radius = (opts && opts.radius) || cfg.radius;
+      b.life = (opts && opts.life) || cfg.lifetime;
+      b.color = (opts && opts.color) || null;
+      b.glowColor = (opts && opts.glowColor) || null;
     });
   }
-};
+
+  Game.fireAngledBullet = function fireAngledBullet(x, y, angle, speed, opts) {
+    return spawnEnemyBullet(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, opts);
+  };
+
+  // 全方位に count 発。rotationOffset で開始角をずらせるので、回転リングにも使える。
+  Game.fireRing = function fireRing(x, y, count, rotationOffset, speed, opts) {
+    for (let i = 0; i < count; i += 1) {
+      const angle = rotationOffset + (Math.PI * 2 * i) / count;
+      spawnEnemyBullet(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, opts);
+    }
+  };
+})();
 
 Game.updateEnemyBullets = function updateEnemyBullets(dt) {
   const w = Game.CONFIG.world;
@@ -41,12 +56,12 @@ Game.drawEnemyBullets = function drawEnemyBullets(ctx) {
   ctx.save();
   Game.enemyBullets.forEachActive((b) => {
     ctx.beginPath();
-    ctx.fillStyle = cfg.glowColor;
+    ctx.fillStyle = b.glowColor || cfg.glowColor;
     ctx.arc(b.x, b.y, b.radius * 2, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.beginPath();
-    ctx.fillStyle = cfg.color;
+    ctx.fillStyle = b.color || cfg.color;
     ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
     ctx.fill();
   });

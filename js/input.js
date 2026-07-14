@@ -20,6 +20,20 @@ Game.setupInput = function setupInput() {
 
   canvas.addEventListener("pointerdown", (event) => {
     event.preventDefault();
+    const world = Game.screenToWorld(event.clientX, event.clientY);
+
+    // プレイ中でも一時停止ボタンだけは自機操作より優先する
+    if (Game.state === Game.STATES.PLAYING && Game.isPauseButtonHit(world.x, world.y)) {
+      Game.setState(Game.STATES.PAUSED);
+      return;
+    }
+
+    // プレイ中以外はタップ＝メニュー操作。自機のドラッグ追従は始めない。
+    if (Game.state !== Game.STATES.PLAYING) {
+      Game.handleTap(world.x, world.y);
+      return;
+    }
+
     input.isDown = true;
     input.pointerId = event.pointerId;
     canvas.setPointerCapture(event.pointerId);
@@ -28,6 +42,7 @@ Game.setupInput = function setupInput() {
 
   canvas.addEventListener("pointermove", (event) => {
     if (!input.isDown || event.pointerId !== input.pointerId) return;
+    if (Game.state !== Game.STATES.PLAYING) return;
     event.preventDefault();
     applyPointer(event);
   });

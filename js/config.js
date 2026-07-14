@@ -95,12 +95,19 @@ Game.CONFIG = {
 
   ui: {
     pauseButton: { x: 320, y: 10, w: 30, h: 30 },
-    textColor: "#eef4ff",
-    subTextColor: "rgba(238, 244, 255, 0.72)",
-    buttonFill: "rgba(255, 255, 255, 0.12)",
-    buttonStroke: "rgba(238, 244, 255, 0.65)",
-    overlayFill: "rgba(6, 9, 18, 0.6)",
-    lifeColor: "rgba(255, 120, 180, 0.95)",
+    // 神話的な雰囲気を出すため、セリフ体＋金/真珠色を基調にする。
+    // Webフォントは読み込まず(外部依存無しの方針を継続)、OS標準の明朝/セリフにフォールバックさせる。
+    titleFont: "'Times New Roman', 'Hiragino Mincho ProN', 'Noto Serif JP', serif",
+    bodyFont: "'Times New Roman', 'Hiragino Mincho ProN', 'Noto Serif JP', serif",
+    textColor: "#f3ecda",
+    subTextColor: "rgba(232, 216, 178, 0.78)",
+    accentGold: "#e3c98a",
+    accentGoldBright: "#f8e7b8",
+    accentGoldDim: "rgba(227, 201, 138, 0.5)",
+    buttonFill: "rgba(20, 24, 20, 0.28)",
+    buttonStroke: "rgba(227, 201, 138, 0.75)",
+    overlayFill: "rgba(8, 10, 16, 0.62)",
+    lifeColor: "rgba(248, 209, 140, 0.95)",
   },
 
   debug: {

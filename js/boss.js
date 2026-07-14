@@ -9,14 +9,18 @@ Game.BOSS_DEFS = {
     spriteHeight: 130,
     radius: 40,
     hp: 150,
-    // 台詞はPELAGIA設定資料のレーナの口癖/決め台詞から。
+    // レーナは事情を知らず、ただ"面白そうな獲物"としてジェリーに絡んでくる。
     dialogue: {
       beforeBattle: [
-        { speaker: "レーナ", text: "暇だね。そこの魚、遊びな。" },
-        { speaker: "ジェリー", text: "わ、私は魚じゃ…！" },
+        { speaker: "レーナ", text: "……お。めずらしい。こんな浅いとこの子が、なんでこんな下まで来てるんだい？" },
+        { speaker: "ジェリー", text: "深海灯を探しに行くの。通してくれる？" },
+        { speaker: "レーナ", text: "ふうん、まぁ、無謀だと思うけど" },
+        { speaker: "レーナ", text: "あぁ、でもちょうどいいや。暇だったんだ。" },
+        { speaker: "レーナ", text: "そこの浅瀬の魚。ちょっと遊びな。六英傑のあたしから逃げ切れたら通してあげる。ここはまだ浅い所だし。" },
       ],
       afterDefeat: [
-        { speaker: "レーナ", text: "私が英傑なのは強いからだ。理屈なんかどうでもいい。" },
+        { speaker: "レーナ", text: "……へえ。やるじゃん。思ったより強いんだね、あんた。" },
+        { speaker: "レーナ", text: "いいよ、行きな。深いとこは、あんたが思ってるよりずっと物騒だけど。" },
       ],
     },
     patterns: [
@@ -42,15 +46,23 @@ Game.BOSS_DEFS = {
     spriteHeight: 128,
     radius: 34,
     hp: 600,
-    // 台詞はPELAGIA設定資料のリオネの口癖/決め台詞から。
+    // リオネは"知っていて、心配して"止める。1面ボスだが実は一番ジェリーに優しい。
     dialogue: {
       beforeBattle: [
-        { speaker: "リオネ", text: "ここから先へ行って、生きて帰れるの？" },
-        { speaker: "ジェリー", text: "それでも、行かなきゃいけないの。" },
+        { speaker: "リオネ", text: "そこまで。……あなた、浅海の子ね。" },
+        { speaker: "ジェリー", text: "お願い、通して。深海灯を探しに行くの。" },
+        { speaker: "リオネ", text: "深海灯。……ここから先へ行って、生きて帰れるの？" },
+        { speaker: "ジェリー", text: "帰るよ。光を持って、みんなのところに帰る。" },
+        { speaker: "リオネ", text: "（…この子は、何も知らないのね。）" },
+        { speaker: "リオネ", text: "ごめんなさい。わたしは、浅海のものをここから先へ行かすことはできない。" },
+        { speaker: "リオネ", text: "わたしはここで引き返す者を導く者であり続ける。……それが、六英傑の一人として、あなたを守ることでもあるから。" },
       ],
       afterDefeat: [
-        { speaker: "リオネ", text: "浅海のものを立ち入らせない。私はここで導く者であり続ける。" },
-        { speaker: "ジェリー", text: "ごめんね…でも、ありがとう。" },
+        { speaker: "リオネ", text: "……強い子。止められなかったわね。" },
+        { speaker: "リオネ", text: "行きなさい。でも、覚えておいて。" },
+        { speaker: "リオネ", text: "あなたが探しているものは、あなたが思っているものとは、違うかもしれない。" },
+        { speaker: "ジェリー", text: "？ どういう…" },
+        { speaker: "リオネ", text: "……いいえ。行けば、わかる。気をつけて。" },
       ],
     },
     patterns: [
@@ -82,6 +94,8 @@ Game.BOSS_DEFS = {
       },
       {
         kind: "mirrorFarewell",
+        // 最終形態に入る直前だけ挟む短い一言。
+        beforePattern: [{ speaker: "リオネ", text: "決意は強いのね。" }],
         params: {
           interval: 0.9,
           speed: 95,
@@ -233,6 +247,13 @@ Game.updateBoss = function updateBoss(dt) {
       boss.patternIndex += 1;
       boss.patternTimer = 0;
       boss.patternState = {};
+
+      // 次のパターンに専用の一言があれば、弾を出す前に挟む(DIALOGUE状態で今フレームはここまで)。
+      const nextPattern = patterns[boss.patternIndex];
+      if (nextPattern.beforePattern) {
+        Game.startDialogue(nextPattern.beforePattern, null);
+        return;
+      }
     }
   }
 

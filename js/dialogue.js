@@ -63,25 +63,29 @@ Game.advanceDialogue = function advanceDialogue() {
     ctx.fillStyle = "rgba(4, 6, 12, 0.35)";
     ctx.fillRect(0, 0, w.width, w.height);
 
-    // 話者の立ち絵(会話専用にお腹より上でクロップしたもの。ボス勢のみ用意がある)。
-    // 自機側の台詞では簡略化のため出さない。
-    const portraitKey = Game.SPEAKER_PORTRAITS[line.speaker];
-    const portrait = portraitKey && Game.assets.portraits[portraitKey];
-    if (portrait && portrait.ready) {
-      const img = portrait.image;
-      const ph = 220;
-      const pw = ph * (img.width / img.height);
-      ctx.globalAlpha = 0.96;
-      ctx.drawImage(img, w.width - pw + 30, 150, pw, ph);
-      ctx.globalAlpha = 1;
-    }
-
     const boxX = 14;
     const boxY = 468;
     const boxW = w.width - 28;
     const boxH = 150;
 
-    ctx.fillStyle = "rgba(10, 12, 20, 0.74)";
+    // 話者の立ち絵(等身大の全身画像。ボス勢のみ用意がある)。自機側の台詞では出さない。
+    // 画像自体はクロップせず、会話ボックスの裏に下半身が隠れる形で「お腹から上」だけ見せる。
+    const portraitKey = Game.SPEAKER_PORTRAITS[line.speaker];
+    const portrait = portraitKey && Game.assets.portraits[portraitKey];
+    if (portrait && portrait.ready) {
+      const img = portrait.image;
+      const ph = 400;
+      const pw = ph * (img.width / img.height);
+      const bellyFraction = 0.465; // 画像上端からおよそ「お腹」までの割合
+      const px = w.width - pw + 44;
+      const py = boxY + 8 - ph * bellyFraction;
+      ctx.globalAlpha = 0.98;
+      ctx.drawImage(img, px, py, pw, ph);
+      ctx.globalAlpha = 1;
+    }
+
+    // 立ち絵の下半身を隠すため、ボックスはほぼ不透明にする。
+    ctx.fillStyle = "rgba(9, 11, 19, 0.94)";
     ctx.fillRect(boxX, boxY, boxW, boxH);
     ctx.strokeStyle = ui.accentGoldDim;
     ctx.lineWidth = 1;

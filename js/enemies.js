@@ -20,6 +20,26 @@ Game.ENEMY_DEFS = {
     // 元は淡い水色で背景に埋もれていたため、暖色寄りの高コントラストな色に変更。
     shot: { interval: 1.6, speed: 130, radius: 4.5, color: "rgba(255, 150, 90, 0.95)", glowColor: "rgba(255, 180, 130, 0.45)" },
   },
+  // 2面(誘灯迷宮)の雑魚。コーリア系のミノカサゴは体当たりのみ、エスカー系のチョウチンアンコウは
+  // ランタンの光を思わせる単発弾を撃つ。
+  lionfishGrunt: {
+    sprite: "assets/enemy_coralia_grunt.png",
+    spriteWidth: 43,
+    spriteHeight: 46,
+    hp: 7,
+    radius: 15,
+    score: Game.CONFIG.score.lionfishGrunt,
+    shot: null,
+  },
+  anglerGrunt: {
+    sprite: "assets/enemy_escar_grunt.png",
+    spriteWidth: 44,
+    spriteHeight: 32,
+    hp: 5,
+    radius: 13,
+    score: Game.CONFIG.score.anglerGrunt,
+    shot: { interval: 1.5, speed: 125, radius: 4, color: "rgba(255, 214, 120, 0.95)", glowColor: "rgba(255, 230, 160, 0.45)" },
+  },
 };
 
 // 移動パターンのライブラリ。spec.move.params を渡すと age(経過秒)→座標 の関数を返す。

@@ -2,6 +2,7 @@
 // 見た目(color/glowColor/radius)は呼び出し側でパターンごとに上書きできる。
 // wave(振幅/周波数)を渡すと進行方向に直交する向きへ揺れながら飛ぶ(蛇行/羽根が舞う表現に使う)。
 // ring:true を渡すと塗り潰さず輪郭だけにする(透明弾の表現に使う)。
+// fake:true を渡すと見た目は同じだが当たり判定を持たない囮弾になる(collision.js側で無視する)。
 Game.enemyBullets = Game.createPool(Game.CONFIG.pool.enemyBullets, () => ({
   x: 0,
   y: 0,
@@ -15,6 +16,7 @@ Game.enemyBullets = Game.createPool(Game.CONFIG.pool.enemyBullets, () => ({
   color: null,
   glowColor: null,
   ring: false,
+  fake: false,
   waveAmp: 0,
   waveFreq: 0,
   wavePhase: 0,
@@ -38,6 +40,7 @@ Game.enemyBullets = Game.createPool(Game.CONFIG.pool.enemyBullets, () => ({
       b.color = (opts && opts.color) || null;
       b.glowColor = (opts && opts.glowColor) || null;
       b.ring = !!(opts && opts.ring);
+      b.fake = !!(opts && opts.fake);
 
       const wave = opts && opts.wave;
       if (wave) {
@@ -67,6 +70,21 @@ Game.enemyBullets = Game.createPool(Game.CONFIG.pool.enemyBullets, () => ({
       const angle = rotationOffset + (Math.PI * 2 * i) / count;
       spawnEnemyBullet(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, opts);
     }
+  };
+
+  // 複数の弾を決まった相対配置(shape: [{x,y}, ...])のまま1つの形として撃ち出す。
+  // 判定は各弾が個別の小さな円のままなので、形の精密な当たり判定にはならない(軽さ優先)。
+  // shapeは進行方向(angle)に合わせて回転させてから配置する。速度は集合全体で共通。
+  Game.fireShapeCluster = function fireShapeCluster(x, y, shape, angle, speed, opts) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const vx = cos * speed;
+    const vy = sin * speed;
+    shape.forEach((pt) => {
+      const rx = pt.x * cos - pt.y * sin;
+      const ry = pt.x * sin + pt.y * cos;
+      spawnEnemyBullet(x + rx, y + ry, vx, vy, opts);
+    });
   };
 })();
 

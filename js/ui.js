@@ -185,7 +185,7 @@
     ctx.textAlign = "center";
     ctx.font = `italic 400 14px ${ui.bodyFont}`;
     ctx.fillStyle = ui.subTextColor;
-    ctx.fillText("— 海神たちの眠る聖域 —", w.width / 2, 282);
+    ctx.fillText("— 海霊たちの眠る聖域 —", w.width / 2, 282);
 
     drawButton(ctx, RECTS.storyButton, "通しプレイ");
     drawButton(ctx, RECTS.practiceButton, "面選択（練習）");

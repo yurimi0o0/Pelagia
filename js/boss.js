@@ -21,19 +21,46 @@ Game.BOSS_DEFS = {
       afterDefeat: [
         { speaker: "レーナ", text: "……へえ。やるじゃん。思ったより強いんだね、あんた。" },
         { speaker: "レーナ", text: "いいよ、行きな。深いとこは、あんたが思ってるよりずっと物騒だけど。" },
+        { speaker: "ジェリー", text: "うん……ありがとう、レーナ。" },
+        { speaker: "レーナ", text: "礼はいらないよ。あたしはただ、面白い方を選んだだけ。" },
       ],
     },
+    // 設定資料の弾幕描写(蛇行する高速弾/岩陰から飛び出す弾列/左右から挟む噛みつき弾)に対応する3形態。
     patterns: [
       {
-        kind: "aimedRapid",
+        kind: "serpentineFast",
+        hpThreshold: 0.66,
         params: {
-          interval: 0.5,
-          speed: 160,
-          spread: 3,
-          spreadAngle: 0.24,
+          interval: 0.35,
+          speed: 190,
           radius: 3.5,
-          color: "rgba(255, 150, 120, 0.92)",
-          glowColor: "rgba(255, 180, 140, 0.4)",
+          color: "rgba(130, 225, 195, 0.92)",
+          glowColor: "rgba(150, 240, 210, 0.4)",
+          waveAmp: 26,
+          waveFreq: 6.5,
+        },
+      },
+      {
+        kind: "ambushRows",
+        hpThreshold: 0.33,
+        params: {
+          interval: 1.3,
+          rowCount: 4,
+          rowSpacing: 60,
+          speed: 150,
+          radius: 4,
+          color: "rgba(120, 200, 255, 0.9)",
+          glowColor: "rgba(150, 220, 255, 0.4)",
+        },
+      },
+      {
+        kind: "pincerBite",
+        params: {
+          interval: 1.0,
+          speed: 170,
+          radius: 4.5,
+          color: "rgba(255, 120, 130, 0.92)",
+          glowColor: "rgba(255, 160, 170, 0.4)",
         },
       },
     ],
@@ -65,43 +92,48 @@ Game.BOSS_DEFS = {
         { speaker: "リオネ", text: "……いいえ。行けば、わかる。気をつけて。" },
       ],
     },
+    // 設定資料の弾幕描写(翼のように開く弾/雪や羽根の白い光弾/ゆっくり降りる透明弾)に対応する3形態。
     patterns: [
       {
-        kind: "rotatingRing",
+        kind: "wingSpread",
         hpThreshold: 0.66,
         params: {
-          count: 16,
-          interval: 1.1,
-          rotationSpeed: 0.6,
-          speed: 70,
+          interval: 1.0,
+          pairs: 4,
+          spreadAngle: 0.22,
+          baseAngle: Math.PI / 2,
+          speed: 85,
           radius: 4,
-          color: "rgba(190, 220, 255, 0.9)",
-          glowColor: "rgba(190, 220, 255, 0.4)",
+          color: "rgba(210, 225, 255, 0.92)",
+          glowColor: "rgba(210, 225, 255, 0.4)",
         },
       },
       {
-        kind: "gentleSpiral",
+        kind: "featherFall",
         hpThreshold: 0.33,
         params: {
-          arms: 2,
-          interval: 0.12,
-          turnSpeed: 1.6,
-          speed: 75,
+          interval: 0.22,
+          speed: 45,
           radius: 4,
-          color: "rgba(214, 196, 255, 0.9)",
-          glowColor: "rgba(214, 196, 255, 0.4)",
+          color: "rgba(255, 255, 255, 0.92)",
+          glowColor: "rgba(255, 255, 255, 0.35)",
+          waveAmp: 18,
+          waveFreq: 1.8,
         },
       },
       {
-        kind: "mirrorFarewell",
+        kind: "clearDrops",
         // 最終形態に入る直前だけ挟む短い一言。
         beforePattern: [{ speaker: "リオネ", text: "決意は強いのね。" }],
         params: {
-          interval: 0.9,
-          speed: 95,
-          radius: 4.5,
-          color: "rgba(255, 238, 250, 0.95)",
-          glowColor: "rgba(255, 238, 250, 0.4)",
+          interval: 0.5,
+          count: 3,
+          spreadAngle: 0.5,
+          speed: 55,
+          radius: 7,
+          color: "rgba(220, 235, 255, 0.85)",
+          glowColor: "rgba(220, 235, 255, 0.3)",
+          ring: true,
         },
       },
     ],
@@ -110,57 +142,94 @@ Game.BOSS_DEFS = {
 
 // 弾幕パターンの実装。boss.patternState はパターン切り替え時にリセットされるスクラッチ領域。
 Game.BOSS_PATTERNS = {
-  // レーナ：自機狙いを扇状3wayで連射する、手数の多い攻撃的なパターン。
-  aimedRapid(boss, pattern, dt) {
+  // レーナ第1形態：ウツボのように波打ちながら自機へ向かう高速弾(enemyBullets.jsのwaveで蛇行させる)。
+  serpentineFast(boss, pattern, dt) {
     const params = pattern.params;
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
 
     const p = Game.player;
-    const baseAngle = Math.atan2(p.y - boss.y, p.x - boss.x);
-    const count = params.spread || 1;
-    for (let i = 0; i < count; i += 1) {
-      const offset = count === 1 ? 0 : (i - (count - 1) / 2) * params.spreadAngle;
-      Game.fireAngledBullet(boss.x, boss.y, baseAngle + offset, params.speed, params);
-    }
+    const angle = Math.atan2(p.y - boss.y, p.x - boss.x);
+    Game.fireAngledBullet(boss.x, boss.y, angle, params.speed, {
+      ...params,
+      wave: { amp: params.waveAmp, freq: params.waveFreq },
+    });
   },
 
-  // リオネ第1形態：ゆっくり回転するリング。隙間があり避けやすい規則的な弾幕。
-  rotatingRing(boss, pattern, dt) {
+  // レーナ第2形態：岩陰(画面端)から交互に飛び出す弾の列で不意打ちする。
+  ambushRows(boss, pattern, dt) {
     const params = pattern.params;
-    boss.patternState.rotation = (boss.patternState.rotation || 0) + params.rotationSpeed * dt;
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
-    Game.fireRing(boss.x, boss.y, params.count, boss.patternState.rotation, params.speed, params);
-  },
 
-  // リオネ第2形態：ゆっくり回る腕から花びら状に弾を撒く。
-  gentleSpiral(boss, pattern, dt) {
-    const params = pattern.params;
-    boss.patternState.angle = (boss.patternState.angle || 0) + params.turnSpeed * dt;
-    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
-    if (boss.patternState.timer > 0) return;
-    boss.patternState.timer = params.interval;
-    for (let i = 0; i < params.arms; i += 1) {
-      const angle = boss.patternState.angle + (Math.PI * 2 * i) / params.arms;
-      Game.fireAngledBullet(boss.x, boss.y, angle, params.speed, params);
+    boss.patternState.side = boss.patternState.side === "left" ? "right" : "left";
+    const fromLeft = boss.patternState.side === "left";
+    const startY = Game.player.y - ((params.rowCount - 1) * params.rowSpacing) / 2;
+    for (let i = 0; i < params.rowCount; i += 1) {
+      const y = startY + i * params.rowSpacing;
+      const x = fromLeft ? -10 : Game.CONFIG.world.width + 10;
+      Game.fireAngledBullet(x, y, fromLeft ? 0 : Math.PI, params.speed, params);
     }
   },
 
-  // リオネ最終形態：自機へ向けて左右対称に2発。引き止めるような、優しいが逃げ場を絞る弾。
-  mirrorFarewell(boss, pattern, dt) {
+  // レーナ第3形態：画面の左右から自機を挟むように噛みつく2発。
+  pincerBite(boss, pattern, dt) {
     const params = pattern.params;
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
 
     const p = Game.player;
-    const dx = p.x - boss.x;
-    const dy = p.y - boss.y;
-    Game.fireAngledBullet(boss.x, boss.y, Math.atan2(dy, dx), params.speed, params);
-    Game.fireAngledBullet(boss.x, boss.y, Math.atan2(dy, -dx), params.speed, params);
+    const w = Game.CONFIG.world;
+    const left = { x: -10, y: p.y - 40 };
+    const right = { x: w.width + 10, y: p.y - 40 };
+    Game.fireAngledBullet(left.x, left.y, Math.atan2(p.y - left.y, p.x - left.x), params.speed, params);
+    Game.fireAngledBullet(right.x, right.y, Math.atan2(p.y - right.y, p.x - right.x), params.speed, params);
+  },
+
+  // リオネ第1形態：翼を開くように左右対称へ広がる弾の対。規則的で読みやすい。
+  wingSpread(boss, pattern, dt) {
+    const params = pattern.params;
+    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
+    if (boss.patternState.timer > 0) return;
+    boss.patternState.timer = params.interval;
+
+    for (let i = 1; i <= params.pairs; i += 1) {
+      const offset = i * params.spreadAngle;
+      Game.fireAngledBullet(boss.x, boss.y, params.baseAngle - offset, params.speed, params);
+      Game.fireAngledBullet(boss.x, boss.y, params.baseAngle + offset, params.speed, params);
+    }
+  },
+
+  // リオネ第2形態：雪や羽根のように、画面上から白い弾がゆらゆら降ってくる。
+  featherFall(boss, pattern, dt) {
+    const params = pattern.params;
+    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
+    if (boss.patternState.timer > 0) return;
+    boss.patternState.timer = params.interval;
+
+    const w = Game.CONFIG.world;
+    const x = 20 + Math.random() * (w.width - 40);
+    Game.fireAngledBullet(x, -10, Math.PI / 2, params.speed, {
+      ...params,
+      wave: { amp: params.waveAmp, freq: params.waveFreq },
+    });
+  },
+
+  // リオネ最終形態：ゆっくり降りてくる透明(輪郭のみ)の弾。優しいが逃げ場を絞る。
+  clearDrops(boss, pattern, dt) {
+    const params = pattern.params;
+    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
+    if (boss.patternState.timer > 0) return;
+    boss.patternState.timer = params.interval;
+
+    const base = Math.PI / 2;
+    for (let i = 0; i < params.count; i += 1) {
+      const offset = (i - (params.count - 1) / 2) * params.spreadAngle;
+      Game.fireAngledBullet(boss.x, boss.y, base + offset, params.speed, params);
+    }
   },
 };
 

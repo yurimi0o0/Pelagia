@@ -9,6 +9,10 @@
     Game.updatePlayerBullets(dt);
     Game.updateGrunts(dt);
     Game.updateBoss(dt);
+    // updateBoss は撃破後の会話(DIALOGUE)を開始しうる。そのフレームでstageRunnerまで
+    // 進めてしまうと、activeBossがnullになった瞬間を検知して次フェーズ(クリア判定含む)へ
+    // 即座に進んでしまい、会話がまったく表示されないまま上書きされる。ここで一度止める。
+    if (Game.state !== S.PLAYING) return;
     Game.updateEnemyBullets(dt);
     Game.updateStageRunner(dt);
     Game.resolveCollisions();

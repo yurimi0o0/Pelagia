@@ -70,14 +70,16 @@ Game.advanceDialogue = function advanceDialogue() {
 
     // 話者の立ち絵(等身大の全身画像。ボス勢のみ用意がある)。自機側の台詞では出さない。
     // 画像自体はクロップせず、会話ボックスの裏に下半身が隠れる形で「お腹から上」だけ見せる。
+    // 足は画面に入らなくてもよいので、大きめに表示して迫力を優先する。
     const portraitKey = Game.SPEAKER_PORTRAITS[line.speaker];
     const portrait = portraitKey && Game.assets.portraits[portraitKey];
     if (portrait && portrait.ready) {
       const img = portrait.image;
-      const ph = 400;
+      const ph = 580;
       const pw = ph * (img.width / img.height);
       const bellyFraction = 0.465; // 画像上端からおよそ「お腹」までの割合
-      const px = w.width - pw + 44;
+      const centerX = 230; // 画面よりやや右寄りに立たせる
+      const px = centerX - pw / 2;
       const py = boxY + 8 - ph * bellyFraction;
       ctx.globalAlpha = 0.98;
       ctx.drawImage(img, px, py, pw, ph);

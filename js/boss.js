@@ -98,11 +98,12 @@ Game.BOSS_DEFS = {
         kind: "wingSpread",
         hpThreshold: 0.66,
         params: {
-          interval: 1.0,
+          // 弾が画面端まで届くようになった上で「ヌルゲー」との指摘を受け、間隔短縮+増速。
+          interval: 0.82,
           pairs: 4,
           spreadAngle: 0.22,
           baseAngle: Math.PI / 2,
-          speed: 85,
+          speed: 100,
           radius: 4,
           color: "rgba(210, 225, 255, 0.92)",
           glowColor: "rgba(210, 225, 255, 0.4)",
@@ -113,14 +114,15 @@ Game.BOSS_DEFS = {
         hpThreshold: 0.33,
         params: {
           // 安置が多いとの指摘を受け、間隔短縮+レーン巡回(後述)で画面幅を満遍なく埋めるように調整。
+          // さらに増速+揺れ幅を広げ、単純に見切りやすいだけの弾にならないようにした。
           interval: 0.15,
           lanes: 6,
-          speed: 45,
+          speed: 54,
           radius: 4,
           color: "rgba(255, 255, 255, 0.92)",
           glowColor: "rgba(255, 255, 255, 0.35)",
-          waveAmp: 24,
-          waveFreq: 2.2,
+          waveAmp: 30,
+          waveFreq: 2.4,
         },
       },
       {
@@ -129,10 +131,11 @@ Game.BOSS_DEFS = {
         beforePattern: [{ speaker: "リオネ", text: "決意は強いのね。" }],
         params: {
           // 安置が多いとの指摘を受け、弾数/扇の角度を増やし、間隔を詰めた。
-          interval: 0.42,
-          count: 5,
+          // 最終形態なのでさらに弾数/速度を上げ、締めくくりらしい密度にした。
+          interval: 0.36,
+          count: 6,
           spreadAngle: 0.85,
-          speed: 55,
+          speed: 64,
           radius: 7,
           // 透明弾(ring:true)は見えづらかったので不透明な弾に変更した
           // (画面端に届く前に消えていた件は既定lifetimeの引き上げで解消済み)。

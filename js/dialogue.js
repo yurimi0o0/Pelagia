@@ -44,6 +44,21 @@ Game.dialogue = {
   stepState: {},
   returnState: null,
   fadeOverlay: null, // { color, alpha } — fadeステップが書き込む全画面オーバーレイ
+  cast: [], // このシーンに登場する立ち絵持ちの話者(最大2人、初登場順)。会話中は画面に残り続ける。
+};
+
+// steps全体を見て、立ち絵を持つ話者を初登場順に最大2人まで拾う(ジェリー等、立ち絵の無い話者は対象外)。
+// 2人いれば左右に常駐、1人なら中央に常駐させ、喋っていない方/時だけ薄暗くする。
+Game.computeDialogueCast = function computeDialogueCast(steps) {
+  const cast = [];
+  (steps || []).forEach((step) => {
+    const type = step.type || "line";
+    if (type !== "line") return;
+    if (step.speaker && Game.SPEAKER_PORTRAITS[step.speaker] && cast.indexOf(step.speaker) === -1) {
+      cast.push(step.speaker);
+    }
+  });
+  return cast.slice(0, 2);
 };
 
 // steps: [{speaker,text} | {type,...}, ...]
@@ -55,6 +70,7 @@ Game.startCutscene = function startCutscene(steps, onComplete, opts) {
     return;
   }
   Game.dialogue.steps = steps;
+  Game.dialogue.cast = Game.computeDialogueCast(steps);
   Game.dialogue.onComplete = onComplete || null;
   Game.dialogue.returnState = options.returnState !== undefined ? options.returnState : Game.STATES.PLAYING;
   Game.setState(options.enterState || Game.STATES.DIALOGUE);
@@ -268,6 +284,10 @@ Game.drawCutsceneActors = function drawCutsceneActors(ctx) {
     return chars;
   }
 
+  // 行頭に来てはいけない句読点類(禁則処理)。「。」だけが次の行に取り残されるのを防ぐため、
+  // 該当する文字は前の行の末尾に詰め戻す。
+  const LINE_START_FORBIDDEN = new Set(["。", "、", "！", "？", "」", "』", "】", "）", ".", ",", "!", "?", ")", "…"]);
+
   // 日本語は単語区切りが無いので、文字単位で幅を測って折り返す。
   function wrapChars(ctx, chars, maxWidth) {
     const lines = [];
@@ -284,7 +304,14 @@ Game.drawCutsceneActors = function drawCutsceneActors(ctx) {
       currentWidth += w;
     });
     if (current.length) lines.push(current);
-    return lines;
+
+    // 禁則処理：行頭が句読点だけにならないよう、前の行の末尾へ詰める。
+    for (let i = 1; i < lines.length; i += 1) {
+      while (lines[i].length > 0 && LINE_START_FORBIDDEN.has(lines[i][0].ch)) {
+        lines[i - 1].push(lines[i].shift());
+      }
+    }
+    return lines.filter((line) => line.length > 0);
   }
 
   Game.drawDialogueBox = function drawDialogueBox(ctx) {
@@ -302,23 +329,32 @@ Game.drawCutsceneActors = function drawCutsceneActors(ctx) {
     const boxW = w.width - 28;
     const boxH = 150;
 
-    // 話者の立ち絵(等身大の全身画像。ボス勢のみ用意がある)。自機側の台詞では出さない。
+    // 話者の立ち絵(等身大の全身画像。ボス勢のみ用意がある)。自機(ジェリー)は立ち絵を持たない。
     // 画像自体はクロップせず、会話ボックスの裏に下半身が隠れる形で「お腹から上」だけ見せる。
     // 足は画面に入らなくてもよいので、大きめに表示して迫力を優先する。
-    const portraitKey = Game.SPEAKER_PORTRAITS[line.speaker];
-    const portrait = portraitKey && Game.assets.portraits[portraitKey];
-    if (portrait && portrait.ready) {
-      const img = portrait.image;
-      const ph = 580;
-      const pw = ph * (img.width / img.height);
-      const bellyFraction = 0.465; // 画像上端からおよそ「お腹」までの割合
-      const centerX = 230; // 画面よりやや右寄りに立たせる
-      const px = centerX - pw / 2;
-      const py = boxY + 8 - ph * bellyFraction;
-      ctx.globalAlpha = 0.98;
-      ctx.drawImage(img, px, py, pw, ph);
-      ctx.globalAlpha = 1;
-    }
+    // cast(このシーンの立ち絵持ち、最大2人)は会話の間ずっと画面に残り、喋っていない方/時は薄暗くする。
+    const cast = Game.dialogue.cast || [];
+    const bellyFraction = 0.465; // 画像上端からおよそ「お腹」までの割合
+    const layouts = cast.length >= 2
+      ? [{ centerX: 92, ph: 430 }, { centerX: 268, ph: 430 }]
+      : [{ centerX: 230, ph: 580 }];
+
+    cast
+      .map((speaker, i) => ({ speaker, layout: layouts[i] }))
+      .sort((a, b) => (a.speaker === line.speaker ? 1 : 0) - (b.speaker === line.speaker ? 1 : 0)) // 喋っている方を最後に描いて手前に出す
+      .forEach(({ speaker, layout }) => {
+        const portraitKey = Game.SPEAKER_PORTRAITS[speaker];
+        const portrait = portraitKey && Game.assets.portraits[portraitKey];
+        if (!portrait || !portrait.ready) return;
+        const img = portrait.image;
+        const ph = layout.ph;
+        const pw = ph * (img.width / img.height);
+        const px = layout.centerX - pw / 2;
+        const py = boxY + 8 - ph * bellyFraction;
+        ctx.globalAlpha = speaker === line.speaker ? 0.98 : 0.55;
+        ctx.drawImage(img, px, py, pw, ph);
+        ctx.globalAlpha = 1;
+      });
 
     // 立ち絵の下半身を隠すため、ボックスはほぼ不透明にする。
     ctx.fillStyle = "rgba(9, 11, 19, 0.94)";

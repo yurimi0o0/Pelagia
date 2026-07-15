@@ -110,6 +110,7 @@ Game.spawnGruntNow = function spawnGruntNow(spec) {
     x: 0,
     y: 0,
     hp: def.hp,
+    maxHp: def.hp,
     radius: def.radius,
     flip: !!spec.flip,
     moveFn,
@@ -194,6 +195,25 @@ Game.drawGrunts = function drawGrunts(ctx) {
       ctx.lineWidth = 1;
       ctx.arc(g.x, g.y, def.radius, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.restore();
+    }
+
+    // 小さくてよいので雑魚敵にも残りHPが見えるように、頭上に細いバーだけ出す。
+    // 明るい背景(1面)でも埋もれないよう、外周に暗い縁取りを入れてコントラストを確保する。
+    if (g.alive) {
+      const barW = def.radius * 1.7;
+      const barH = 3;
+      const barX = g.x - barW / 2;
+      const barY = g.y - def.radius - 8;
+      const ratio = Math.max(0, g.hp / g.maxHp);
+      ctx.save();
+      ctx.strokeStyle = "rgba(6, 8, 14, 0.85)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(barX, barY, barW, barH);
+      ctx.fillStyle = "rgba(10, 12, 20, 0.75)";
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.fillStyle = "rgba(255, 214, 150, 0.95)";
+      ctx.fillRect(barX, barY, barW * ratio, barH);
       ctx.restore();
     }
   });

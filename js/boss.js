@@ -45,7 +45,8 @@ Game.BOSS_DEFS = {
           rowCount: 4,
           rowSpacing: 60,
           speed: 150,
-          radius: 4,
+          // 見づらいとの指摘を受けて弾を少し大きく。
+          radius: 5.5,
           color: "rgba(120, 200, 255, 0.9)",
           glowColor: "rgba(150, 220, 255, 0.4)",
         },
@@ -133,9 +134,11 @@ Game.BOSS_DEFS = {
           spreadAngle: 0.85,
           speed: 55,
           radius: 7,
-          color: "rgba(220, 235, 255, 0.85)",
-          glowColor: "rgba(220, 235, 255, 0.3)",
-          ring: true,
+          // 透明弾(ring:true)は見えづらく、かつ既定lifetime(6秒)だと低速のため
+          // 画面下部に届く前に消えてしまっていたので、不透明な弾に変更しlifeを明示的に延ばす。
+          color: "rgba(230, 240, 255, 0.92)",
+          glowColor: "rgba(220, 235, 255, 0.4)",
+          life: 14,
         },
       },
     ],
@@ -243,7 +246,8 @@ Game.BOSS_DEFS = {
           radius: 3.5,
           color: "rgba(255, 214, 120, 0.92)",
           glowColor: "rgba(255, 230, 160, 0.4)",
-          waveAmp: 20,
+          // 難しいとの指摘を受け、左右の揺れ幅を狭めて読みやすくした。
+          waveAmp: 12,
           waveFreq: 5.5,
         },
       },
@@ -598,6 +602,8 @@ Game.BOSS_PATTERNS = {
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
 
+    // 真ん中に安置ができないよう、中央にも1発撃ってから左右のペアを広げる。
+    Game.fireAngledBullet(boss.x, boss.y, params.baseAngle, params.speed, params);
     for (let i = 1; i <= params.pairs; i += 1) {
       const offset = i * params.spreadAngle;
       Game.fireAngledBullet(boss.x, boss.y, params.baseAngle - offset, params.speed, params);

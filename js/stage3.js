@@ -1,12 +1,12 @@
 // 3面(無光王宮)固有のデータ。1・2面と同じ構造で組んである。
 // 最終面なので、雑魚は3種類(メディモチーフのクラゲ2種+オリアモチーフのシャチ)を混ぜ、
-// 弾速/間隔も1・2面より一段詰めて手応えを上げている。
+// 弾速/間隔は最終面としての緊張感を残しつつ、詰みやすい密度にならないよう抑えている。
 const STAGE3_WAVES = {
   // 中央に3体、少し間隔を空けて縦に落ちてくるクラゲ
   columnCenterMedi: [
-    { type: "mediGrunt1", delay: 0, move: { kind: "straightDown", params: { x: 120, y0: -20, speed: 78 } } },
-    { type: "mediGrunt1", delay: 0.22, move: { kind: "straightDown", params: { x: 180, y0: -20, speed: 78 } } },
-    { type: "mediGrunt1", delay: 0.44, move: { kind: "straightDown", params: { x: 240, y0: -20, speed: 78 } } },
+    { type: "mediGrunt1", delay: 0, move: { kind: "straightDown", params: { x: 120, y0: -20, speed: 68 } } },
+    { type: "mediGrunt1", delay: 0.22, move: { kind: "straightDown", params: { x: 180, y0: -20, speed: 68 } } },
+    { type: "mediGrunt1", delay: 0.44, move: { kind: "straightDown", params: { x: 240, y0: -20, speed: 68 } } },
   ],
 
   // 左右から弧を描いて入ってくるシャチのペア
@@ -14,37 +14,37 @@ const STAGE3_WAVES = {
     {
       type: "oriaGrunt",
       delay: 0,
-      move: { kind: "arcFromSide", params: { side: -1, targetX: 110, y0: -20, vy: 64, curveStrength: 150, curveDecay: 0.95 } },
+      move: { kind: "arcFromSide", params: { side: -1, targetX: 110, y0: -20, vy: 56, curveStrength: 120, curveDecay: 0.95 } },
     },
     {
       type: "oriaGrunt",
       delay: 0.12,
       flip: true,
-      move: { kind: "arcFromSide", params: { side: 1, targetX: 250, y0: -20, vy: 64, curveStrength: 150, curveDecay: 0.95 } },
+      move: { kind: "arcFromSide", params: { side: 1, targetX: 250, y0: -20, vy: 56, curveStrength: 120, curveDecay: 0.95 } },
     },
   ],
 
   // 横に揺れながら降りてくる単発弾持ちのクラゲ3体
   sineRowMedi: [
-    { type: "mediGrunt2", delay: 0, move: { kind: "sineDive", params: { x0: 90, y0: -20, vy: 64, amplitude: 34, frequency: 2.3 } } },
-    { type: "mediGrunt2", delay: 0.28, move: { kind: "sineDive", params: { x0: 180, y0: -20, vy: 64, amplitude: 34, frequency: 2.3 } } },
-    { type: "mediGrunt2", delay: 0.56, move: { kind: "sineDive", params: { x0: 270, y0: -20, vy: 64, amplitude: 34, frequency: 2.3 } } },
+    { type: "mediGrunt2", delay: 0, move: { kind: "sineDive", params: { x0: 90, y0: -20, vy: 56, amplitude: 26, frequency: 1.9 } } },
+    { type: "mediGrunt2", delay: 0.28, move: { kind: "sineDive", params: { x0: 180, y0: -20, vy: 56, amplitude: 26, frequency: 1.9 } } },
+    { type: "mediGrunt2", delay: 0.56, move: { kind: "sineDive", params: { x0: 270, y0: -20, vy: 56, amplitude: 26, frequency: 1.9 } } },
   ],
 
   // シャチのV字編隊で直進
   vFormationOria: [
-    { type: "oriaGrunt", delay: 0, move: { kind: "straightDown", params: { x: 180, y0: -20, speed: 72 } } },
-    { type: "oriaGrunt", delay: 0.1, move: { kind: "straightDown", params: { x: 148, y0: -50, speed: 72 } } },
-    { type: "oriaGrunt", delay: 0.1, flip: true, move: { kind: "straightDown", params: { x: 212, y0: -50, speed: 72 } } },
+    { type: "oriaGrunt", delay: 0, move: { kind: "straightDown", params: { x: 180, y0: -20, speed: 62 } } },
+    { type: "oriaGrunt", delay: 0.1, move: { kind: "straightDown", params: { x: 148, y0: -50, speed: 62 } } },
+    { type: "oriaGrunt", delay: 0.1, flip: true, move: { kind: "straightDown", params: { x: 212, y0: -50, speed: 62 } } },
   ],
 
-  // 3種混成の波。終盤専用に、密度を上げて最終面らしい圧を出す。
+  // 3種混成の波。終盤専用だが、同時に抱え込みすぎない数と速度に抑える。
   mixedRush: [
-    { type: "mediGrunt1", delay: 0, move: { kind: "straightDown", params: { x: 100, y0: -20, speed: 82 } } },
-    { type: "oriaGrunt", delay: 0.15, move: { kind: "arcFromSide", params: { side: -1, targetX: 150, y0: -20, vy: 70, curveStrength: 130, curveDecay: 0.95 } } },
-    { type: "oriaGrunt", delay: 0.15, flip: true, move: { kind: "arcFromSide", params: { side: 1, targetX: 210, y0: -20, vy: 70, curveStrength: 130, curveDecay: 0.95 } } },
-    { type: "mediGrunt2", delay: 0.35, move: { kind: "sineDive", params: { x0: 260, y0: -20, vy: 68, amplitude: 30, frequency: 2.4 } } },
-    { type: "mediGrunt1", delay: 0.5, move: { kind: "straightDown", params: { x: 200, y0: -20, speed: 82 } } },
+    { type: "mediGrunt1", delay: 0, move: { kind: "straightDown", params: { x: 100, y0: -20, speed: 70 } } },
+    { type: "oriaGrunt", delay: 0.15, move: { kind: "arcFromSide", params: { side: -1, targetX: 150, y0: -20, vy: 60, curveStrength: 110, curveDecay: 0.95 } } },
+    { type: "oriaGrunt", delay: 0.15, flip: true, move: { kind: "arcFromSide", params: { side: 1, targetX: 210, y0: -20, vy: 60, curveStrength: 110, curveDecay: 0.95 } } },
+    { type: "mediGrunt2", delay: 0.35, move: { kind: "sineDive", params: { x0: 260, y0: -20, vy: 58, amplitude: 24, frequency: 2.0 } } },
+    { type: "mediGrunt1", delay: 0.5, move: { kind: "straightDown", params: { x: 200, y0: -20, speed: 70 } } },
   ],
 };
 
@@ -92,26 +92,26 @@ Game.STAGE3 = {
   phases: [
     {
       type: "waves",
-      duration: 14,
+      duration: 15,
       spawns: [
         { t: 0.6, wave: "columnCenterMedi" },
         { t: 3.5, wave: "sideArcsOria" },
         { t: 6.5, wave: "sineRowMedi" },
         { t: 9.5, wave: "vFormationOria" },
-        { t: 12, wave: "columnCenterMedi" },
+        { t: 12.6, wave: "columnCenterMedi" },
       ],
     },
     { type: "miniboss", key: "oria", x: 180, y: 130 },
     {
       type: "waves",
-      duration: 16,
+      duration: 17,
       spawns: [
         { t: 0.5, wave: "sideArcsOria" },
         { t: 3.2, wave: "sineRowMedi" },
-        { t: 6, wave: "mixedRush" },
-        { t: 9, wave: "vFormationOria" },
-        { t: 11.5, wave: "columnCenterMedi" },
-        { t: 14, wave: "mixedRush" },
+        { t: 6.3, wave: "mixedRush" },
+        { t: 9.8, wave: "vFormationOria" },
+        { t: 12.8, wave: "columnCenterMedi" },
+        { t: 15.2, wave: "sideArcsOria" },
       ],
     },
     { type: "boss", key: "medi", x: 180, y: 150 },

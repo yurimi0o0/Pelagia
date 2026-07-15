@@ -49,6 +49,9 @@ Game.BOSS_DEFS = {
           radius: 5.5,
           color: "rgba(120, 200, 255, 0.9)",
           glowColor: "rgba(150, 220, 255, 0.4)",
+          // 3面で色々な動きが増えたのに合わせ、難易度は変えない範囲で緩い揺れを追加。
+          waveAmp: 14,
+          waveFreq: 1.8,
         },
       },
       {
@@ -59,6 +62,9 @@ Game.BOSS_DEFS = {
           radius: 4.5,
           color: "rgba(255, 120, 130, 0.92)",
           glowColor: "rgba(255, 160, 170, 0.4)",
+          // 左右で逆位相に揺らし、噛みつきの軌道に表情をつける(難易度は維持)。
+          waveAmp: 10,
+          waveFreq: 2.0,
         },
       },
     ],
@@ -182,6 +188,9 @@ Game.BOSS_DEFS = {
           radius: 4,
           color: "rgba(255, 110, 110, 0.92)",
           glowColor: "rgba(255, 150, 150, 0.4)",
+          // 3面で色々な動きが増えたのに合わせ、難易度は変えない範囲で緩い揺れを追加。
+          waveAmp: 10,
+          waveFreq: 1.6,
         },
       },
       {
@@ -194,6 +203,9 @@ Game.BOSS_DEFS = {
           radius: 4,
           color: "rgba(255, 90, 90, 0.92)",
           glowColor: "rgba(255, 140, 140, 0.4)",
+          // 列ごとに位相をずらした緩い横揺れで、まっすぐ育つだけの列に表情をつける。
+          waveAmp: 12,
+          waveFreq: 1.4,
         },
       },
     ],
@@ -262,6 +274,9 @@ Game.BOSS_DEFS = {
           smallSpeed: 150,
           smallCount: 4,
           smallSpreadAngle: 0.5,
+          // 大玉だけ緩く揺らす(小玉は速く反応が難しいため難易度維持のため据え置き)。
+          bigWaveAmp: 14,
+          bigWaveFreq: 1.3,
           big: { radius: 13, color: "rgba(255, 200, 90, 0.85)", glowColor: "rgba(255, 220, 140, 0.35)" },
           small: { radius: 3, color: "rgba(255, 235, 190, 0.95)", glowColor: "rgba(255, 240, 210, 0.4)" },
         },
@@ -617,7 +632,11 @@ Game.BOSS_PATTERNS = {
     for (let i = 0; i < params.rowCount; i += 1) {
       const y = startY + i * params.rowSpacing;
       const x = fromLeft ? -10 : Game.CONFIG.world.width + 10;
-      Game.fireAngledBullet(x, y, fromLeft ? 0 : Math.PI, params.speed, params);
+      // 各行の位相をずらして緩く揺らし、まっすぐな列に少し表情をつける(速度/間隔は変えない)。
+      Game.fireAngledBullet(x, y, fromLeft ? 0 : Math.PI, params.speed, {
+        ...params,
+        wave: { amp: params.waveAmp, freq: params.waveFreq, phase: i * 1.3 },
+      });
     }
   },
 
@@ -632,8 +651,15 @@ Game.BOSS_PATTERNS = {
     const w = Game.CONFIG.world;
     const left = { x: -10, y: p.y - 40 };
     const right = { x: w.width + 10, y: p.y - 40 };
-    Game.fireAngledBullet(left.x, left.y, Math.atan2(p.y - left.y, p.x - left.x), params.speed, params);
-    Game.fireAngledBullet(right.x, right.y, Math.atan2(p.y - right.y, p.x - right.x), params.speed, params);
+    // 左右で逆位相に揺らし、単純な直線の噛みつきに動きをつける(速度/間隔は変えない)。
+    Game.fireAngledBullet(left.x, left.y, Math.atan2(p.y - left.y, p.x - left.x), params.speed, {
+      ...params,
+      wave: { amp: params.waveAmp, freq: params.waveFreq, phase: 0 },
+    });
+    Game.fireAngledBullet(right.x, right.y, Math.atan2(p.y - right.y, p.x - right.x), params.speed, {
+      ...params,
+      wave: { amp: params.waveAmp, freq: params.waveFreq, phase: Math.PI },
+    });
   },
 
   // リオネ第1形態：翼を開くように左右対称へ広がる弾の対。規則的で読みやすい。
@@ -642,13 +668,15 @@ Game.BOSS_PATTERNS = {
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
+    boss.patternState.wobble = (boss.patternState.wobble || 0) + 0.3;
 
-    // 真ん中に安置ができないよう、中央にも1発撃ってから左右のペアを広げる。
-    Game.fireAngledBullet(boss.x, boss.y, params.baseAngle, params.speed, params);
+    // 扇全体をゆっくり左右に振る(中央〜ペアの相対配置は変わらないので安置は生まれない)。
+    const base = params.baseAngle + Math.sin(boss.patternState.wobble) * 0.12;
+    Game.fireAngledBullet(boss.x, boss.y, base, params.speed, params);
     for (let i = 1; i <= params.pairs; i += 1) {
       const offset = i * params.spreadAngle;
-      Game.fireAngledBullet(boss.x, boss.y, params.baseAngle - offset, params.speed, params);
-      Game.fireAngledBullet(boss.x, boss.y, params.baseAngle + offset, params.speed, params);
+      Game.fireAngledBullet(boss.x, boss.y, base - offset, params.speed, params);
+      Game.fireAngledBullet(boss.x, boss.y, base + offset, params.speed, params);
     }
   },
 
@@ -693,7 +721,11 @@ Game.BOSS_PATTERNS = {
 
     const p = Game.player;
     const angle = Math.atan2(p.y - boss.y, p.x - boss.x);
-    Game.fireShapeCluster(boss.x, boss.y, Game.BULLET_SHAPES.coral, angle, params.speed, params);
+    // クラスタ全体が緩く揺れながら飛ぶことで、まっすぐ狙うだけだった弾道に表情をつける。
+    Game.fireShapeCluster(boss.x, boss.y, Game.BULLET_SHAPES.coral, angle, params.speed, {
+      ...params,
+      wave: { amp: params.waveAmp, freq: params.waveFreq },
+    });
   },
 
   // コーリア第2形態：画面下から珊瑚型クラスタが何本も「生えて」くる。1面が上から降る弾中心
@@ -712,7 +744,10 @@ Game.BOSS_PATTERNS = {
     // 手前で生まれないと、生成直後にその粒だけ即座に消えてしまう(以前の+24はこの余裕が無かった)。
     for (let i = 0; i < params.columns; i += 1) {
       const x = ((i + 0.5) / params.columns + offset) * w.width;
-      Game.fireShapeCluster(x, w.height + 5, Game.BULLET_SHAPES.coral, -Math.PI / 2, params.speed, params);
+      Game.fireShapeCluster(x, w.height + 5, Game.BULLET_SHAPES.coral, -Math.PI / 2, params.speed, {
+        ...params,
+        wave: { amp: params.waveAmp, freq: params.waveFreq, phase: i * 1.2 },
+      });
     }
   },
 
@@ -743,7 +778,11 @@ Game.BOSS_PATTERNS = {
 
     const p = Game.player;
     const angle = Math.atan2(p.y - boss.y, p.x - boss.x);
-    Game.fireAngledBullet(boss.x, boss.y, angle, params.bigSpeed, params.big);
+    // 大玉だけ緩く揺らして表情をつける(小玉は難易度維持のため直進のまま)。
+    Game.fireAngledBullet(boss.x, boss.y, angle, params.bigSpeed, {
+      ...params.big,
+      wave: { amp: params.bigWaveAmp, freq: params.bigWaveFreq },
+    });
     for (let i = 0; i < params.smallCount; i += 1) {
       const offset = (i - (params.smallCount - 1) / 2) * params.smallSpreadAngle;
       Game.fireAngledBullet(boss.x, boss.y, angle + offset, params.smallSpeed, params.small);
@@ -756,9 +795,11 @@ Game.BOSS_PATTERNS = {
     boss.patternState.timer = (boss.patternState.timer || 0) - dt;
     if (boss.patternState.timer > 0) return;
     boss.patternState.timer = params.interval;
+    boss.patternState.wobble = (boss.patternState.wobble || 0) + 0.25;
 
     const p = Game.player;
-    const baseAngle = Math.atan2(p.y - boss.y, p.x - boss.x);
+    // 扇全体をごく緩く揺らして単調な直線の扇に表情をつける(角度幅・弾数は変えない)。
+    const baseAngle = Math.atan2(p.y - boss.y, p.x - boss.x) + Math.sin(boss.patternState.wobble) * 0.1;
     for (let i = 0; i < params.count; i += 1) {
       const offset = (i - (params.count - 1) / 2) * params.spreadAngle;
       const isFake = Math.random() < params.fakeChance;

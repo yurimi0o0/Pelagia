@@ -41,37 +41,36 @@ Game.ENEMY_DEFS = {
     score: Game.CONFIG.score.anglerGrunt,
     shot: { interval: 1.5, speed: 125, radius: 4, color: "rgba(255, 214, 120, 0.95)", glowColor: "rgba(255, 230, 160, 0.45)" },
   },
-  // 3面(無光王宮)の雑魚。最終面らしく1・2面よりわずかにHP/弾速/接触判定を強めている。
-  // 最終面は雑魚が3種になるので、それぞれ違う攻め方にした：
-  // メディモチーフのクラゲ2種(脈打つ全方位パルス/自機狙いの単発)と、オリアモチーフの噛みつき2連。
+  // 3面(無光王宮)の雑魚。最終面らしさは残しつつ、道中で詰まりすぎないようHP/弾速/間隔は控えめにしている。
+  // 3種それぞれ別の撃ち方(ゆっくり回転するパルス/揺れる単発/間を空けた噛みつき2連)で単調さを避ける。
   mediGrunt1: {
     sprite: "assets/enemy_medi_grunt1.png",
     spriteWidth: 44,
     spriteHeight: 44,
-    hp: 7,
-    radius: 15,
+    hp: 5,
+    radius: 14,
     score: Game.CONFIG.score.mediGrunt,
     // クラゲが脈打つような、小さな全方位リング弾。
-    shot: { interval: 2.2, ring: true, count: 5, speed: 70, radius: 4, color: "rgba(200, 160, 255, 0.9)", glowColor: "rgba(220, 190, 255, 0.4)" },
+    shot: { interval: 2.8, ring: true, count: 4, speed: 58, radius: 4, rotStep: 0.35, color: "rgba(200, 160, 255, 0.9)", glowColor: "rgba(220, 190, 255, 0.4)" },
   },
   mediGrunt2: {
     sprite: "assets/enemy_medi_grunt2.png",
     spriteWidth: 44,
     spriteHeight: 44,
-    hp: 6,
-    radius: 14,
+    hp: 5,
+    radius: 13,
     score: Game.CONFIG.score.mediGrunt,
-    shot: { interval: 1.3, speed: 140, radius: 4.5, color: "rgba(200, 160, 255, 0.95)", glowColor: "rgba(220, 190, 255, 0.45)" },
+    shot: { interval: 1.9, speed: 115, radius: 4.2, waveAmp: 12, waveFreq: 2.0, color: "rgba(190, 230, 255, 0.95)", glowColor: "rgba(190, 230, 255, 0.42)" },
   },
   oriaGrunt: {
     sprite: "assets/enemy_oria_grunt.png",
     spriteWidth: 48,
     spriteHeight: 30,
-    hp: 6,
-    radius: 14,
+    hp: 5,
+    radius: 13,
     score: Game.CONFIG.score.oriaGrunt,
-    // シャチらしい噛みつきの2連弾。
-    shot: { interval: 1.6, speed: 130, spreadCount: 2, spreadAngle: 0.22, radius: 4, color: "rgba(140, 190, 255, 0.9)", glowColor: "rgba(170, 210, 255, 0.4)" },
+    // シャチらしい噛みつきの2連弾。発射間隔と弾速を落として、3面道中の圧を少し下げる。
+    shot: { interval: 2.1, speed: 112, spreadCount: 2, spreadAngle: 0.18, radius: 4, color: "rgba(140, 190, 255, 0.9)", glowColor: "rgba(170, 210, 255, 0.4)" },
   },
 };
 
@@ -163,14 +162,18 @@ Game.updateGrunts = function updateGrunts(dt) {
         const p = Game.player;
         if (def.shot.ring) {
           // 全方位のパルス(クラゲが脈打つイメージ)。
-          Game.fireRing(g.x, g.y, def.shot.count, 0, def.shot.speed, def.shot);
+          g.ringRot = (g.ringRot || 0) + (def.shot.rotStep || 0);
+          Game.fireRing(g.x, g.y, def.shot.count, g.ringRot, def.shot.speed, def.shot);
         } else {
           // 通常は自機狙い。spreadCountがあれば扇状に複数発(無ければ従来通り単発)。
           const angle = Math.atan2(p.y - g.y, p.x - g.x);
           const count = def.shot.spreadCount || 1;
           for (let i = 0; i < count; i += 1) {
             const offset = count > 1 ? (i - (count - 1) / 2) * def.shot.spreadAngle : 0;
-            Game.fireAngledBullet(g.x, g.y, angle + offset, def.shot.speed, def.shot);
+            Game.fireAngledBullet(g.x, g.y, angle + offset, def.shot.speed, {
+              ...def.shot,
+              wave: def.shot.waveAmp ? { amp: def.shot.waveAmp, freq: def.shot.waveFreq || 1.8, phase: i * 1.2 } : undefined,
+            });
           }
         }
       }

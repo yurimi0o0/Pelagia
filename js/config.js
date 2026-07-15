@@ -111,8 +111,6 @@ Game.CONFIG = {
   miss: {
     flashDuration: 0.9,
     flashInterval: 0.08,
-    recenterX: 180,
-    recenterY: 500,
   },
 
   boss: {

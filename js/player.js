@@ -57,13 +57,11 @@ Game.player.dragTo = function dragTo(worldX, worldY) {
   p.targetY = Game.clamp(worldY - p.dragAnchorY, halfH, Game.CONFIG.world.height - halfH);
 };
 
-// ステップAの簡易ミス処理：点滅させつつ中央へ戻すだけ。残機/無敵時間の本実装はステップD。
+// 被弾時の処理。位置は動かさず、その場で無敵時間ぶん点滅させるだけにする
+// (以前は強制的に中央へ戻していたが、プレイ感を損なうため廃止)。
 Game.player.applyMiss = function applyMiss() {
   const cfg = Game.CONFIG.miss;
-  const p = Game.player;
-  p.missFlashTimer = cfg.flashDuration;
-  p.x = p.targetX = p.prevX = cfg.recenterX;
-  p.y = p.targetY = p.prevY = cfg.recenterY;
+  Game.player.missFlashTimer = cfg.flashDuration;
 };
 
 Game.player.update = function update(dt) {

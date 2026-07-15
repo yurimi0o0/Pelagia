@@ -1,36 +1,37 @@
 // 雑魚敵の定義データ。新しい雑魚を足す時はここにエントリを増やすだけでよい形にしている。
 // shot が null の敵は体当たりのみ（レーナ系のウツボ想定）、shot ありは自機狙いの単発を撃つ（リオネ系の魚想定）。
 Game.ENEMY_DEFS = {
+  // 1面(透光庭園)の雑魚。序盤なのでHP・弾速・発射間隔を低めにし、避け方を覚えるための難度にする。
   eelGrunt: {
     sprite: "assets/enemy_lena_grunt.png",
     spriteWidth: 42,
     spriteHeight: 46,
-    hp: 6,
-    radius: 14,
+    hp: 4,
+    radius: 13,
     score: Game.CONFIG.score.eelGrunt,
     // ウツボらしい不意打ちの噛みつきとして、2発の近い角度の弾を撃つ。
-    shot: { interval: 2.0, speed: 150, spreadCount: 2, spreadAngle: 0.18, radius: 4, color: "rgba(120, 200, 255, 0.9)", glowColor: "rgba(150, 220, 255, 0.4)" },
+    shot: { interval: 2.4, speed: 120, spreadCount: 2, spreadAngle: 0.16, radius: 4, color: "rgba(120, 200, 255, 0.9)", glowColor: "rgba(150, 220, 255, 0.4)" },
   },
   fishGrunt: {
     sprite: "assets/enemy_rione_grunt.png",
     spriteWidth: 46,
     spriteHeight: 23,
-    hp: 5,
+    hp: 4,
     radius: 12,
     score: Game.CONFIG.score.fishGrunt,
     // 元は淡い水色で背景に埋もれていたため、暖色寄りの高コントラストな色に変更。
-    shot: { interval: 1.6, speed: 130, radius: 4.5, color: "rgba(255, 150, 90, 0.95)", glowColor: "rgba(255, 180, 130, 0.45)" },
+    shot: { interval: 2.0, speed: 110, radius: 4.2, color: "rgba(255, 150, 90, 0.95)", glowColor: "rgba(255, 180, 130, 0.45)" },
   },
-  // 2面(誘灯迷宮)の雑魚。コーリア系のミノカサゴは棘を左右に散らす2発の拡散弾、
-  // エスカー系のチョウチンアンコウはランタンの光を思わせる単発弾を撃つ。
+  // 2面(誘灯迷宮)の雑魚。1面より少し固く速い中難度。
+  // コーリア系のミノカサゴは棘を左右に散らす2発の拡散弾、エスカー系のチョウチンアンコウは単発弾を撃つ。
   lionfishGrunt: {
     sprite: "assets/enemy_coralia_grunt.png",
     spriteWidth: 43,
     spriteHeight: 46,
-    hp: 7,
-    radius: 15,
+    hp: 6,
+    radius: 14,
     score: Game.CONFIG.score.lionfishGrunt,
-    shot: { interval: 1.8, speed: 108, spreadCount: 2, spreadAngle: 0.32, radius: 4, color: "rgba(255, 140, 200, 0.92)", glowColor: "rgba(255, 170, 210, 0.4)" },
+    shot: { interval: 1.9, speed: 112, spreadCount: 2, spreadAngle: 0.30, radius: 4, color: "rgba(255, 140, 200, 0.92)", glowColor: "rgba(255, 170, 210, 0.4)" },
   },
   anglerGrunt: {
     sprite: "assets/enemy_escar_grunt.png",
@@ -39,7 +40,7 @@ Game.ENEMY_DEFS = {
     hp: 5,
     radius: 13,
     score: Game.CONFIG.score.anglerGrunt,
-    shot: { interval: 1.5, speed: 125, radius: 4, color: "rgba(255, 214, 120, 0.95)", glowColor: "rgba(255, 230, 160, 0.45)" },
+    shot: { interval: 1.7, speed: 120, radius: 4, color: "rgba(255, 214, 120, 0.95)", glowColor: "rgba(255, 230, 160, 0.45)" },
   },
   // 3面(無光王宮)の雑魚。最終面らしさは残しつつ、道中で詰まりすぎないようHP/弾速/間隔は控えめにしている。
   // 3種それぞれ別の撃ち方(ゆっくり回転するパルス/揺れる単発/間を空けた噛みつき2連)で単調さを避ける。

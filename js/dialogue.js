@@ -112,7 +112,12 @@ Game.enterDialogueStep = function enterDialogueStep(index) {
   if (type === "wait" || type === "titlecard") {
     ss.duration = (type === "titlecard" ? step.holdDuration : step.duration) || 0;
   } else if (type === "move") {
-    const actor = Game.cutsceneActors[step.target] || (Game.cutsceneActors[step.target] = { x: step.to.x, y: step.to.y });
+    // isPlayer:true なら自機(Game.player)そのものを直接動かす(専用の立ち絵/シルエットを持たない
+    // ジェリーは自機の実スプライトで歩かせる)。それ以外はcutsceneActorsの簡易アクター。
+    ss.isPlayer = !!step.isPlayer;
+    const actor = ss.isPlayer
+      ? Game.player
+      : (Game.cutsceneActors[step.target] || (Game.cutsceneActors[step.target] = { x: step.to.x, y: step.to.y }));
     ss.duration = step.duration || 0;
     ss.target = step.target;
     ss.from = { x: actor.x, y: actor.y };
@@ -148,10 +153,11 @@ Game.updateDialogue = function updateDialogue(dt) {
   const t = ss.duration > 0 ? Game.clamp(ss.elapsed / ss.duration, 0, 1) : 1;
 
   if (type === "move") {
-    const actor = Game.cutsceneActors[ss.target];
+    const actor = ss.isPlayer ? Game.player : Game.cutsceneActors[ss.target];
     if (actor) {
       actor.x = ss.from.x + (ss.to.x - ss.from.x) * t;
       actor.y = ss.from.y + (ss.to.y - ss.from.y) * t;
+      if (ss.isPlayer) { Game.player.targetX = actor.x; Game.player.targetY = actor.y; }
     }
   } else if (type === "fade") {
     Game.dialogue.fadeOverlay.alpha = ss.from + (ss.to - ss.from) * t;
@@ -186,8 +192,12 @@ Game.advanceDialogue = function advanceDialogue() {
 
   const ss = dialogue.stepState;
   if (type === "move") {
-    const actor = Game.cutsceneActors[ss.target];
-    if (actor) { actor.x = ss.to.x; actor.y = ss.to.y; }
+    const actor = ss.isPlayer ? Game.player : Game.cutsceneActors[ss.target];
+    if (actor) {
+      actor.x = ss.to.x;
+      actor.y = ss.to.y;
+      if (ss.isPlayer) { Game.player.targetX = actor.x; Game.player.targetY = actor.y; }
+    }
   } else if (type === "fade") {
     Game.dialogue.fadeOverlay.alpha = ss.to;
     if (ss.to === 0) Game.dialogue.fadeOverlay = null;

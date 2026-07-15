@@ -49,7 +49,8 @@ const STAGE3_WAVES = {
 };
 
 // 真相開示シーン専用の一過性演出：「深海灯に手を伸ばすが、すり抜ける」明滅リング。
-// ジェリー自身(cutsceneActors.jelly)は消さず、光側だけが明滅することで「掴めない」を表現する。
+// ジェリー自身(自機の実スプライト、move stepがisPlayer:trueで直接動かす)は消さず、
+// 光側だけが明滅することで「掴めない」を表現する。
 // 経過時間はperformance.now()基準にして、汎用のupdateDialogueには手を加えずに済ませている。
 Game.altarReachEffect = null;
 
@@ -65,8 +66,6 @@ Game.drawAltarReachEffect = function drawAltarReachEffect(ctx) {
     Game.altarReachEffect = null;
     return;
   }
-  const actor = Game.cutsceneActors.jelly;
-  if (!actor) return;
   const t = elapsed / fx.duration;
   const alpha = Math.sin(t * Math.PI); // 0→1→0の明滅
   ctx.save();
@@ -74,7 +73,7 @@ Game.drawAltarReachEffect = function drawAltarReachEffect(ctx) {
   ctx.strokeStyle = "rgba(255, 244, 214, 0.9)";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(actor.x, actor.y - 40, 18 + t * 12, 0, Math.PI * 2);
+  ctx.arc(Game.player.x, Game.player.y - 40, 18 + t * 12, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 };

@@ -28,16 +28,29 @@ Game.player.init = function init() {
   p.missFlashTimer = 0;
 };
 
-// 自機の現在位置(x,y)基準の「掴める範囲」。判定円の少し上〜足元の少し下まで。
+// 自機の現在位置(x,y)基準の「掴める範囲」。スプライト全体(頭の先〜足元)の少し外側まで。
 // ここに触れた時だけドラッグ開始できる(タップでその場に飛ぶ操作は廃止)。
 Game.player.isPointInGrabZone = function isPointInGrabZone(worldX, worldY) {
   const cfg = Game.CONFIG.player;
   const p = Game.player;
   const left = p.x - cfg.spriteWidth / 2 - cfg.grabPaddingX;
   const right = p.x + cfg.spriteWidth / 2 + cfg.grabPaddingX;
-  const top = p.y + cfg.hitOffsetY - cfg.grabTopPadding;
+  const top = p.y - cfg.spriteHeight / 2 - cfg.grabTopPadding; // 頭を掴んでも動かせるように
   const bottom = p.y + cfg.spriteHeight / 2 + cfg.grabBottomPadding;
   return worldX >= left && worldX <= right && worldY >= top && worldY <= bottom;
+};
+
+// 当たり判定円(スプライトより小さい)が画面端に触れるまで動かせるようにするための可動範囲。
+// スプライト自体は見た目上すこし画面からはみ出せる(自機シューティングでは一般的な仕様)。
+Game.player.getPositionBounds = function getPositionBounds() {
+  const cfg = Game.CONFIG.player;
+  const w = Game.CONFIG.world;
+  return {
+    minX: cfg.hitRadius - cfg.hitOffsetX,
+    maxX: w.width - cfg.hitRadius - cfg.hitOffsetX,
+    minY: cfg.hitRadius - cfg.hitOffsetY,
+    maxY: w.height - cfg.hitRadius - cfg.hitOffsetY,
+  };
 };
 
 // 掴んだ瞬間の指と自機の相対位置(アンカー)を覚えておく。以後はこのオフセットを保ったまま
@@ -49,12 +62,10 @@ Game.player.beginDrag = function beginDrag(worldX, worldY) {
 };
 
 Game.player.dragTo = function dragTo(worldX, worldY) {
-  const cfg = Game.CONFIG.player;
   const p = Game.player;
-  const halfW = cfg.spriteWidth / 2;
-  const halfH = cfg.spriteHeight / 2;
-  p.targetX = Game.clamp(worldX - p.dragAnchorX, halfW, Game.CONFIG.world.width - halfW);
-  p.targetY = Game.clamp(worldY - p.dragAnchorY, halfH, Game.CONFIG.world.height - halfH);
+  const bounds = Game.player.getPositionBounds();
+  p.targetX = Game.clamp(worldX - p.dragAnchorX, bounds.minX, bounds.maxX);
+  p.targetY = Game.clamp(worldY - p.dragAnchorY, bounds.minY, bounds.maxY);
 };
 
 // 被弾時の処理。位置は動かさず、その場で無敵時間ぶん点滅させるだけにする
@@ -73,10 +84,9 @@ Game.player.update = function update(dt) {
   p.x = Game.damp(p.x, p.targetX, cfg.followStrength, dt);
   p.y = Game.damp(p.y, p.targetY, cfg.followStrength, dt);
 
-  const halfW = cfg.spriteWidth / 2;
-  const halfH = cfg.spriteHeight / 2;
-  p.x = Game.clamp(p.x, halfW, Game.CONFIG.world.width - halfW);
-  p.y = Game.clamp(p.y, halfH, Game.CONFIG.world.height - halfH);
+  const bounds = Game.player.getPositionBounds();
+  p.x = Game.clamp(p.x, bounds.minX, bounds.maxX);
+  p.y = Game.clamp(p.y, bounds.minY, bounds.maxY);
 
   p.velocityX = (p.x - p.prevX) / Math.max(dt, 0.0001);
   p.velocityY = (p.y - p.prevY) / Math.max(dt, 0.0001);

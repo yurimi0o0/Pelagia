@@ -88,9 +88,12 @@ Game.CONFIG = {
   },
 
   // 敵弾のデフォルト見た目。パターン個別に color/glowColor/radius を上書き可能(enemyBullets.js参照)。
+  // lifetimeは「画面外に出たら消える」判定とは別の保険用の寿命。低速弾(featherFallの45px/s等)が
+  // 画面端(対角線734px相当)に届く前に消えてしまっていたため、最も遅いパターンでも余裕を持って
+  // 端まで届く値まで引き上げてある。個別に短くしたい理由がない限りパターン側では上書きしない。
   enemyBullet: {
     radius: 4.5,
-    lifetime: 6,
+    lifetime: 18,
     color: "rgba(255, 176, 214, 0.9)",
     glowColor: "rgba(255, 200, 230, 0.4)",
   },

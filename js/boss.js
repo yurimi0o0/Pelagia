@@ -98,11 +98,12 @@ Game.BOSS_DEFS = {
         kind: "wingSpread",
         hpThreshold: 0.66,
         params: {
-          interval: 1.0,
+          // 弾が画面端まで届くようになった上で「ヌルゲー」との指摘を受け、間隔短縮+増速。
+          interval: 0.82,
           pairs: 4,
           spreadAngle: 0.22,
           baseAngle: Math.PI / 2,
-          speed: 85,
+          speed: 100,
           radius: 4,
           color: "rgba(210, 225, 255, 0.92)",
           glowColor: "rgba(210, 225, 255, 0.4)",
@@ -113,14 +114,15 @@ Game.BOSS_DEFS = {
         hpThreshold: 0.33,
         params: {
           // 安置が多いとの指摘を受け、間隔短縮+レーン巡回(後述)で画面幅を満遍なく埋めるように調整。
+          // さらに増速+揺れ幅を広げ、単純に見切りやすいだけの弾にならないようにした。
           interval: 0.15,
           lanes: 6,
-          speed: 45,
+          speed: 54,
           radius: 4,
           color: "rgba(255, 255, 255, 0.92)",
           glowColor: "rgba(255, 255, 255, 0.35)",
-          waveAmp: 24,
-          waveFreq: 2.2,
+          waveAmp: 30,
+          waveFreq: 2.4,
         },
       },
       {
@@ -129,16 +131,16 @@ Game.BOSS_DEFS = {
         beforePattern: [{ speaker: "リオネ", text: "決意は強いのね。" }],
         params: {
           // 安置が多いとの指摘を受け、弾数/扇の角度を増やし、間隔を詰めた。
-          interval: 0.42,
-          count: 5,
+          // 最終形態なのでさらに弾数/速度を上げ、締めくくりらしい密度にした。
+          interval: 0.36,
+          count: 6,
           spreadAngle: 0.85,
-          speed: 55,
+          speed: 64,
           radius: 7,
-          // 透明弾(ring:true)は見えづらく、かつ既定lifetime(6秒)だと低速のため
-          // 画面下部に届く前に消えてしまっていたので、不透明な弾に変更しlifeを明示的に延ばす。
+          // 透明弾(ring:true)は見えづらかったので不透明な弾に変更した
+          // (画面端に届く前に消えていた件は既定lifetimeの引き上げで解消済み)。
           color: "rgba(230, 240, 255, 0.92)",
           glowColor: "rgba(220, 235, 255, 0.4)",
-          life: 14,
         },
       },
     ],
@@ -239,16 +241,16 @@ Game.BOSS_DEFS = {
         kind: "jitterField",
         hpThreshold: 0.66,
         params: {
-          interval: 0.5,
+          // まだ難しいとの指摘が続いたため、間隔を広げ揺れも穏やかにしてさらに読みやすくした。
+          interval: 0.62,
           count: 3,
           spreadAngle: 0.3,
           speed: 110,
           radius: 3.5,
           color: "rgba(255, 214, 120, 0.92)",
           glowColor: "rgba(255, 230, 160, 0.4)",
-          // 難しいとの指摘を受け、左右の揺れ幅を狭めて読みやすくした。
           waveAmp: 12,
-          waveFreq: 5.5,
+          waveFreq: 4.2,
         },
       },
       {
@@ -671,9 +673,11 @@ Game.BOSS_PATTERNS = {
 
     const w = Game.CONFIG.world;
     const offset = boss.patternState.shift ? 0.5 / params.columns : 0;
+    // 珊瑚シェイプはangle=-PI/2回転でy方向に最大±10ずれる粒がある。画面外判定(height+20)より
+    // 手前で生まれないと、生成直後にその粒だけ即座に消えてしまう(以前の+24はこの余裕が無かった)。
     for (let i = 0; i < params.columns; i += 1) {
       const x = ((i + 0.5) / params.columns + offset) * w.width;
-      Game.fireShapeCluster(x, w.height + 24, Game.BULLET_SHAPES.coral, -Math.PI / 2, params.speed, params);
+      Game.fireShapeCluster(x, w.height + 5, Game.BULLET_SHAPES.coral, -Math.PI / 2, params.speed, params);
     }
   },
 

@@ -10,6 +10,44 @@ Game.BOSS_FALLBACK_COLORS = {
   medi: "#c090e8",
 };
 
+// メディ撃破後、「深海灯に触れて真実を知る」場面。BOSS_DEFS.medi.afterDefeatの後半として
+// 使うのと同時に、Game名前空間に置いておくことでending.js(エンディング回想)からも
+// 同じ内容を参照できるようにしている(= 回想は必ずここから始まる)。
+// ここでの「……あ。」からの後半の間、1枚目のエンディング絵(ending1)を表示させておく。
+Game.MEDI_LIGHT_REVEAL_STEPS = [
+  // この時点のメディは本気形態のまま。単独でエンディング回想を開始した場合(未対戦セッション)でも
+  // 立ち絵が通常に戻っていることがないよう、念のためここでも本気形態を明示しておく。
+  { type: "action", run: () => { Game.SPEAKER_PORTRAITS["メディ"] = "mediSerious"; } },
+  { speaker: "ジェリー", text: "これが…深海灯…。あったかい、光…。" },
+  { speaker: "ジェリー", text: "（手を伸ばす）……あれ。" },
+  { speaker: "ジェリー", text: "つかめ、ない…？ 手が、すり抜ける…どうして。" },
+  { speaker: "メディ", text: "だから言ったでしょう。あなたはそれを、持つことはできません。" },
+  { speaker: "ジェリー", text: "どういう…こと。目の前に、あるのに。" },
+  { speaker: "メディ", text: "PELAGIA(ペラギア)。それが、この光の本当の名。……ではなく、私はそう呼んでます。" },
+  { speaker: "メディ", text: "明かりのような実体物ではなく、概念に近いもの。" },
+  { speaker: "メディ", text: "鏡のような。水面のような。……触れれば、失われてしまうもの。" },
+  { speaker: "メディ", text: "探していたのでしょうが、それそのものは、常にある。探すも何も。そこに。" },
+  { speaker: "ジェリー", text: "わたし、じゃ…持って帰れないの…？ じゃあ、浅海は——" },
+  { speaker: "メディ", text: "……まだ、わからないのですね。" },
+  { speaker: "メディ", text: "あなたもまた、その一部なのです。" },
+  { speaker: "メディ", text: "PELAGIA(ペラギア)は私たち海そのものを集めたもの。" },
+
+  { type: "fade", color: "#eaf6ff", duration: 1.4, direction: "out" },
+  { type: "wait", duration: 0.8 },
+  { type: "fade", color: "#eaf6ff", duration: 1.4, direction: "in" },
+
+  { type: "image", key: "ending1" },
+  { speaker: "ジェリー", text: "……あ。" },
+  { speaker: "ジェリー", text: "それは、光は、持って帰れるものじゃ、ないんだ。なかったん…ですね。" },
+  { speaker: "ジェリー", text: "……じゃあどうすれば浅海を戻せるの……？" },
+  { speaker: "メディ", text: "気づきましたね。" },
+  { speaker: "メディ", text: "ただ、知った。それだけで、じゅうぶんです。" },
+  { speaker: "メディ", text: "浅海は光を失ったのではない。あなたが光を見失っただけ。" },
+  { speaker: "ジェリー", text: "…見失った、だけ。" },
+  { speaker: "ジェリー", text: "じゃあ、戻ればそれで全て終わるの？" },
+  { speaker: "メディ", text: "ええ。行っておいで。全てを忘れるかもしれないけれど、海は全て覚えているから。" },
+];
+
 Game.BOSS_DEFS = {
   lena: {
     name: "レーナ",
@@ -430,33 +468,9 @@ Game.BOSS_DEFS = {
         { type: "action", run: () => Game.beginAltarReachEffect() },
         { type: "wait", duration: 1.0 },
 
-        { speaker: "ジェリー", text: "これが…深海灯…。あったかい、光…。" },
-        { speaker: "ジェリー", text: "（手を伸ばす）……あれ。" },
-        { speaker: "ジェリー", text: "つかめ、ない…？ 手が、すり抜ける…どうして。" },
-        { speaker: "メディ", text: "だから言ったでしょう。あなたはそれを、持つことはできません。" },
-        { speaker: "ジェリー", text: "どういう…こと。目の前に、あるのに。" },
-        { speaker: "メディ", text: "PELAGIA(ペラギア)。それが、この光の本当の名。……ではなく、私はそう呼んでます。" },
-        { speaker: "メディ", text: "明かりのような実体物ではなく、概念に近いもの。" },
-        { speaker: "メディ", text: "鏡のような。水面のような。……触れれば、失われてしまうもの。" },
-        { speaker: "メディ", text: "探していたのでしょうが、それそのものは、常にある。探すも何も。そこに。" },
-        { speaker: "ジェリー", text: "わたし、じゃ…持って帰れないの…？ じゃあ、浅海は——" },
-        { speaker: "メディ", text: "……まだ、わからないのですね。" },
-        { speaker: "メディ", text: "あなたもまた、その一部なのです。" },
-        { speaker: "メディ", text: "PELAGIA(ペラギア)は私たち海そのものを集めたもの。" },
-
-        { type: "fade", color: "#eaf6ff", duration: 1.4, direction: "out" },
-        { type: "wait", duration: 0.8 },
-        { type: "fade", color: "#eaf6ff", duration: 1.4, direction: "in" },
-
-        { speaker: "ジェリー", text: "……あ。" },
-        { speaker: "ジェリー", text: "それは、光は、持って帰れるものじゃ、ないんだ。なかったん…ですね。" },
-        { speaker: "ジェリー", text: "……じゃあどうすれば浅海を戻せるの……？" },
-        { speaker: "メディ", text: "気づきましたね。" },
-        { speaker: "メディ", text: "ただ、知った。それだけで、じゅうぶんです。" },
-        { speaker: "メディ", text: "浅海は光を失ったのではない。あなたが光を見失っただけ。" },
-        { speaker: "ジェリー", text: "…見失った、だけ。" },
-        { speaker: "ジェリー", text: "じゃあ、戻ればそれで全て終わるの？" },
-        { speaker: "メディ", text: "ええ。行っておいで。全てを忘れるかもしれないけれど、海は全て覚えているから。" },
+        // 「これが…深海灯…」以降はエンディング回想の開始点でもあるため、
+        // Game.MEDI_LIGHT_REVEAL_STEPS(このファイル冒頭側で定義)として1本にまとめてある。
+        ...Game.MEDI_LIGHT_REVEAL_STEPS,
       ],
     },
     // 設定資料の「青と赤の二重弾幕/クラゲの傘/触手状レーザー/最終パターン」の4形態。
@@ -493,19 +507,21 @@ Game.BOSS_DEFS = {
         kind: "tentacleLasers",
         hpThreshold: 0.25,
         params: {
-          // 下側に安置ができるとの指摘を受け、(1)左右逆回転をやめ全レーザーを同方向に統一して
-          // 隙間の間隔を一定に保ち、(2)一定間隔で位相をずらした新しい束を出し直し、
-          // (3)メディ自身もゆっくり左右に揺れて起点を動かす、の3点で固定の安置を作らせない。
-          count: 6,
-          rotStep: 0.35,
-          angularSpeed: 0.3,
-          interval: 3.5,
+          // 同方向・等間隔にしただけだと"束全体が剛体として回転する"ため、隙間も一緒に回るだけで
+          // その隙間に留まり続ければ安全な安置になってしまうと分かった。そこで束(世代)ごとに
+          // 回転速度をランダムに変え、世代間の相対位置が時間とともにずれ続けるようにした上で、
+          // 本数を増やして基本の隙間自体も狭くしている。メディ自身の左右の揺れは維持。
+          count: 8,
+          rotStep: 0.4,
+          angularSpeed: 0.28,
+          angularSpeedJitter: 0.3,
+          interval: 3.0,
           swaySpeed: 0.5,
           swayRange: 42,
           laser: {
             length: 420,
             warnDuration: 0.6,
-            fireDuration: 5.2,
+            fireDuration: 4.6,
             fadeDuration: 0.4,
             warnWidth: 2,
             fireWidth: 6,
@@ -946,13 +962,15 @@ Game.BOSS_PATTERNS = {
     if (ps.timer > 0) return;
     ps.timer = params.interval;
     ps.rot = (ps.rot || 0) + params.rotStep;
-    // 左右逆回転をやめ、全レーザーを同方向・等間隔にすることで隙間の幅を一定に保つ。
-    // 一定間隔で位相をずらした束を出し直すので、隙間の位置自体は時間とともに移動し続ける。
+    // 束(世代)ごとに回転速度をランダムに変える。全レーザーが同じ角速度だと束全体が
+    // 剛体のように回るだけになり、隙間に留まり続ければ安全な安置になってしまうため、
+    // 世代間で相対位置が時間とともにずれ続けるようにしている(方向は揃えたまま速さだけ変える)。
+    const genAngularVelocity = params.angularSpeed * (1 - params.angularSpeedJitter + Math.random() * params.angularSpeedJitter * 2);
     for (let i = 0; i < params.count; i += 1) {
       const angle = ps.rot + (Math.PI * 2 * i) / params.count;
       Game.fireLaser(boss.x, boss.y, angle, {
         ...params.laser,
-        angularVelocity: params.angularSpeed,
+        angularVelocity: genAngularVelocity,
         followBoss: true,
         bossRef: boss,
       });

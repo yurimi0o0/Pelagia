@@ -324,7 +324,9 @@
       ctx.fillText(`自己ベスト ${result.bestScore.toLocaleString()}`, w.width / 2, totalY + 34);
     }
 
-    drawButton(ctx, RECTS.resultToTitle, "タイトルへ", 14);
+    // 通しプレイで次の面が既にあるなら、タイトルへ戻すより先に進める方が自然なので差し替える。
+    const canProceed = result.runMode === "STORY" && !!Game.STAGES[Game.currentStageNumber + 1];
+    drawButton(ctx, RECTS.resultToTitle, canProceed ? "次の面へ" : "タイトルへ", 14);
     drawButton(ctx, RECTS.resultToStageSelect, "面選択へ", 14);
     ctx.restore();
   };
@@ -462,8 +464,18 @@
     }
 
     if (Game.state === S.STAGE_CLEAR) {
-      if (hitRect(x, y, RECTS.resultToTitle)) Game.setState(S.TITLE);
-      else if (hitRect(x, y, RECTS.resultToStageSelect)) Game.setState(S.STAGE_SELECT);
+      const result = Game.lastResult;
+      const canProceed = result && result.runMode === "STORY" && !!Game.STAGES[Game.currentStageNumber + 1];
+      if (hitRect(x, y, RECTS.resultToTitle)) {
+        if (canProceed) {
+          Game.runMode = "STORY";
+          Game.startRun(Game.currentStageNumber + 1);
+        } else {
+          Game.setState(S.TITLE);
+        }
+      } else if (hitRect(x, y, RECTS.resultToStageSelect)) {
+        Game.setState(S.STAGE_SELECT);
+      }
     }
   };
 

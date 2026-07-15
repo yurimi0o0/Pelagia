@@ -4,12 +4,12 @@
 Game.ILLUSTRATION_LABELS.ending1 = "光を受け取る";
 Game.ILLUSTRATION_LABELS.ending2 = "浅海に還る";
 
+// 1枚目(ending1)は真相開示中の「……あ。」以降で既に表示されている
+// (Game.MEDI_LIGHT_REVEAL_STEPS、boss.js参照)。ここでは2枚目に切り替えるところから。
 Game.ENDING_STEPS = [
-  { type: "image", key: "ending1" },
-  { type: "wait", duration: 0.6 },
-  { speaker: "ジェリー", text: "終わりは、ある。" },
   { type: "image", key: "ending2", transitionDuration: 1.2 },
   { type: "wait", duration: 0.6 },
+  { speaker: "ジェリー", text: "終わりは、ある。" },
   { speaker: "ジェリー", text: "ただ、輪廻は、終わらない。" },
   { type: "titlecard", lines: ["── PELAGIA ／ TRUE END ──", "『泡となり海となる』"], holdDuration: 4 },
 ];
@@ -30,9 +30,11 @@ Game.startEndingSequence = function startEndingSequence() {
     { enterState: Game.STATES.ENDING, returnState: null });
 };
 
-// 回想再生：スコア/セーブへの書き込みは一切行わない。終わったらタイトルへ戻す。
+// 回想再生：スコア/セーブへの書き込みは一切行わない。「これが…深海灯…」から最後まで
+// (真相開示の後半+エンディング)を通しで再生し、終わったらタイトルへ戻す。
 Game.playEndingReplay = function playEndingReplay() {
-  Game.startCutscene(Game.ENDING_STEPS, () => Game.setState(Game.STATES.TITLE),
+  const steps = [...Game.MEDI_LIGHT_REVEAL_STEPS, ...Game.ENDING_STEPS];
+  Game.startCutscene(steps, () => Game.setState(Game.STATES.TITLE),
     { enterState: Game.STATES.ENDING, returnState: null });
 };
 

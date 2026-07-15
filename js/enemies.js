@@ -8,7 +8,8 @@ Game.ENEMY_DEFS = {
     hp: 6,
     radius: 14,
     score: Game.CONFIG.score.eelGrunt,
-    shot: null,
+    // ウツボらしい不意打ちの噛みつきとして、2発の近い角度の弾を撃つ。
+    shot: { interval: 2.0, speed: 150, spreadCount: 2, spreadAngle: 0.18, radius: 4, color: "rgba(120, 200, 255, 0.9)", glowColor: "rgba(150, 220, 255, 0.4)" },
   },
   fishGrunt: {
     sprite: "assets/enemy_rione_grunt.png",
@@ -20,8 +21,8 @@ Game.ENEMY_DEFS = {
     // 元は淡い水色で背景に埋もれていたため、暖色寄りの高コントラストな色に変更。
     shot: { interval: 1.6, speed: 130, radius: 4.5, color: "rgba(255, 150, 90, 0.95)", glowColor: "rgba(255, 180, 130, 0.45)" },
   },
-  // 2面(誘灯迷宮)の雑魚。コーリア系のミノカサゴは体当たりのみ、エスカー系のチョウチンアンコウは
-  // ランタンの光を思わせる単発弾を撃つ。
+  // 2面(誘灯迷宮)の雑魚。コーリア系のミノカサゴは棘を左右に散らす2発の拡散弾、
+  // エスカー系のチョウチンアンコウはランタンの光を思わせる単発弾を撃つ。
   lionfishGrunt: {
     sprite: "assets/enemy_coralia_grunt.png",
     spriteWidth: 43,
@@ -29,7 +30,7 @@ Game.ENEMY_DEFS = {
     hp: 7,
     radius: 15,
     score: Game.CONFIG.score.lionfishGrunt,
-    shot: null,
+    shot: { interval: 1.8, speed: 108, spreadCount: 2, spreadAngle: 0.32, radius: 4, color: "rgba(255, 140, 200, 0.92)", glowColor: "rgba(255, 170, 210, 0.4)" },
   },
   anglerGrunt: {
     sprite: "assets/enemy_escar_grunt.png",
@@ -41,7 +42,8 @@ Game.ENEMY_DEFS = {
     shot: { interval: 1.5, speed: 125, radius: 4, color: "rgba(255, 214, 120, 0.95)", glowColor: "rgba(255, 230, 160, 0.45)" },
   },
   // 3面(無光王宮)の雑魚。最終面らしく1・2面よりわずかにHP/弾速/接触判定を強めている。
-  // メディモチーフの小型クラゲ2種(1種は単発弾持ち)と、オリアモチーフの高速シャチ。
+  // 最終面は雑魚が3種になるので、それぞれ違う攻め方にした：
+  // メディモチーフのクラゲ2種(脈打つ全方位パルス/自機狙いの単発)と、オリアモチーフの噛みつき2連。
   mediGrunt1: {
     sprite: "assets/enemy_medi_grunt1.png",
     spriteWidth: 44,
@@ -49,7 +51,8 @@ Game.ENEMY_DEFS = {
     hp: 7,
     radius: 15,
     score: Game.CONFIG.score.mediGrunt,
-    shot: null,
+    // クラゲが脈打つような、小さな全方位リング弾。
+    shot: { interval: 2.2, ring: true, count: 5, speed: 70, radius: 4, color: "rgba(200, 160, 255, 0.9)", glowColor: "rgba(220, 190, 255, 0.4)" },
   },
   mediGrunt2: {
     sprite: "assets/enemy_medi_grunt2.png",
@@ -67,7 +70,8 @@ Game.ENEMY_DEFS = {
     hp: 6,
     radius: 14,
     score: Game.CONFIG.score.oriaGrunt,
-    shot: null,
+    // シャチらしい噛みつきの2連弾。
+    shot: { interval: 1.6, speed: 130, spreadCount: 2, spreadAngle: 0.22, radius: 4, color: "rgba(140, 190, 255, 0.9)", glowColor: "rgba(170, 210, 255, 0.4)" },
   },
 };
 
@@ -157,8 +161,18 @@ Game.updateGrunts = function updateGrunts(dt) {
       if (g.shotTimer <= 0) {
         g.shotTimer += def.shot.interval;
         const p = Game.player;
-        const angle = Math.atan2(p.y - g.y, p.x - g.x);
-        Game.fireAngledBullet(g.x, g.y, angle, def.shot.speed, def.shot);
+        if (def.shot.ring) {
+          // 全方位のパルス(クラゲが脈打つイメージ)。
+          Game.fireRing(g.x, g.y, def.shot.count, 0, def.shot.speed, def.shot);
+        } else {
+          // 通常は自機狙い。spreadCountがあれば扇状に複数発(無ければ従来通り単発)。
+          const angle = Math.atan2(p.y - g.y, p.x - g.x);
+          const count = def.shot.spreadCount || 1;
+          for (let i = 0; i < count; i += 1) {
+            const offset = count > 1 ? (i - (count - 1) / 2) * def.shot.spreadAngle : 0;
+            Game.fireAngledBullet(g.x, g.y, angle + offset, def.shot.speed, def.shot);
+          }
+        }
       }
     }
 

@@ -343,7 +343,8 @@ Game.drawCutsceneActors = function drawCutsceneActors(ctx) {
     // 画像自体はクロップせず、会話ボックスの裏に下半身が隠れる形で「お腹から上」だけ見せる。
     // 足は画面に入らなくてもよいので、大きめに表示して迫力を優先する。
     // cast(このシーンの立ち絵持ち、最大2人)は会話の間ずっと画面に残り、喋っていない方/時は薄暗くする。
-    const cast = Game.dialogue.cast || [];
+    // ただしエンディング等で1枚絵が表示されている時は、1枚絵を優先して立ち絵を重ねない。
+    const cast = Game.cutsceneImage ? [] : (Game.dialogue.cast || []);
     const bellyFraction = 0.465; // 画像上端からおよそ「お腹」までの割合
     const layouts = cast.length >= 2
       ? [{ centerX: 92, ph: 430 }, { centerX: 268, ph: 430 }]

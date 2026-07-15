@@ -1,6 +1,6 @@
 // 3面(無光王宮)固有のデータ。1・2面と同じ構造で組んである。
 // 最終面なので、雑魚は3種類(メディモチーフのクラゲ2種+オリアモチーフのシャチ)を混ぜ、
-// 弾速/間隔も1・2面より一段詰めて手応えを上げている。
+// 弾速/間隔も1・2面より一段詰めて、最終面として高めの手応えを出している。
 const STAGE3_WAVES = {
   // 中央に3体、少し間隔を空けて縦に落ちてくるクラゲ
   columnCenterMedi: [
@@ -38,7 +38,7 @@ const STAGE3_WAVES = {
     { type: "oriaGrunt", delay: 0.1, flip: true, move: { kind: "straightDown", params: { x: 212, y0: -50, speed: 72 } } },
   ],
 
-  // 3種混成の波。終盤専用に、密度を上げて最終面らしい圧を出す。
+  // 3種混成の波。終盤専用だが、密度を上げて最終面らしい圧を出す。
   mixedRush: [
     { type: "mediGrunt1", delay: 0, move: { kind: "straightDown", params: { x: 100, y0: -20, speed: 82 } } },
     { type: "oriaGrunt", delay: 0.15, move: { kind: "arcFromSide", params: { side: -1, targetX: 150, y0: -20, vy: 70, curveStrength: 130, curveDecay: 0.95 } } },

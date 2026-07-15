@@ -15,6 +15,12 @@ Game.ENDING_STEPS = [
 ];
 
 Game.startEndingSequence = function startEndingSequence() {
+  // エンディングへ入る直前にも念のため戦闘の名残を一掃しておく
+  // (真相開示の冒頭で既に行っているので、ここに到達する時点では通常は空のはず)。
+  Game.enemyBullets.items.forEach((b) => { b.active = false; });
+  Game.clearActiveLasers();
+  Game.player.init();
+
   Game.finalizeStageResult(); // 3面自体のクリア処理(クリア/ノーミスボーナス, ハイスコア, clearedThrough)
   Game.finalizeStoryTotalScore(); // 3面合計スコアの記録
   Game.saveData.fullCleared = true;

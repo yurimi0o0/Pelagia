@@ -130,12 +130,12 @@ Game.BOSS_DEFS = {
         // 最終形態に入る直前だけ挟む短い一言。
         beforePattern: [{ speaker: "リオネ", text: "決意は強いのね。" }],
         params: {
-          // 安置が多いとの指摘を受け、弾数/扇の角度を増やし、間隔を詰めた。
-          // 最終形態なのでさらに弾数/速度を上げ、締めくくりらしい密度にした。
-          interval: 0.36,
-          count: 6,
-          spreadAngle: 0.85,
-          speed: 64,
+          // エスカーの最終形態(自機狙いの扇+囮)と見た目が近いとの指摘を受け、
+          // 自機狙いの扇ではなく、少しずつ回転しながら広がる全方位のリングに変更した。
+          interval: 0.55,
+          count: 10,
+          rotStep: 0.16,
+          speed: 62,
           radius: 7,
           // 透明弾(ring:true)は見えづらかったので不透明な弾に変更した
           // (画面端に届く前に消えていた件は既定lifetimeの引き上げで解消済み)。
@@ -331,8 +331,6 @@ Game.BOSS_DEFS = {
       {
         kind: "tridentLaser",
         hpThreshold: 0.33,
-        // 3つめの弾幕に入る直前だけ挟む短い一言。
-        beforePattern: [{ speaker: "オリア", text: "お前の気持ちもわかる。ただ、メディ様に会わせる訳にはいかない。" }],
         params: {
           interval: 2.1,
           spreadAngle: 0.32,
@@ -353,6 +351,8 @@ Game.BOSS_DEFS = {
         kind: "dashCharge",
         // 最終形態：高速突進+着地際の自機狙い弾。ボス本体が動く初めてのパターンなので
         // suppressSway(patternState)でアイドル揺れを止め、突進の座標計算と競合しないようにする。
+        // 3つめの弾幕に入る直前だけ挟む短い一言(設定資料の位置に合わせて2→3ではなくここに設定)。
+        beforePattern: [{ speaker: "オリア", text: "お前の気持ちもわかる。ただ、メディ様に会わせる訳にはいかない。" }],
         params: {
           waitDuration: 1.1,
           chargeDuration: 0.28,
@@ -397,11 +397,21 @@ Game.BOSS_DEFS = {
       ],
       // 撃破後はそのまま真相開示(D-2)へ。移動/フェード等の演出stepはdialogue.jsの拡張(D-1)で解釈される。
       afterDefeat: [
+        // 戦闘の名残(残弾/レーザー)を消し、ジェリーを定位置へ戻してから真相開示に入る。
+        {
+          type: "action",
+          run: () => {
+            Game.enemyBullets.items.forEach((b) => { b.active = false; });
+            Game.clearActiveLasers();
+            Game.player.init();
+          },
+        },
         { speaker: "メディ", text: "いいでしょう。深海灯は、この祭壇の先にあります。……取りに行きなさい。" },
         { speaker: "ジェリー", text: "！ …いいの？" },
         { speaker: "メディ", text: "ええ。どうぞ。——掴めるものなら。" },
 
-        { type: "move", target: "jelly", to: { x: 180, y: 260 }, duration: 1.6 },
+        // isPlayer:trueなので、専用シルエットではなく自機の実スプライトが祭壇まで歩く。
+        { type: "move", target: "jelly", isPlayer: true, to: { x: 180, y: 260 }, duration: 1.6 },
         { type: "action", run: () => Game.beginAltarReachEffect() },
         { type: "wait", duration: 1.0 },
 
@@ -468,13 +478,19 @@ Game.BOSS_DEFS = {
         kind: "tentacleLasers",
         hpThreshold: 0.25,
         params: {
-          count: 5,
-          startOffset: 0,
-          angularSpeed: 0.32,
+          // 下側に安置ができるとの指摘を受け、(1)左右逆回転をやめ全レーザーを同方向に統一して
+          // 隙間の間隔を一定に保ち、(2)一定間隔で位相をずらした新しい束を出し直し、
+          // (3)メディ自身もゆっくり左右に揺れて起点を動かす、の3点で固定の安置を作らせない。
+          count: 6,
+          rotStep: 0.35,
+          angularSpeed: 0.3,
+          interval: 3.5,
+          swaySpeed: 0.5,
+          swayRange: 42,
           laser: {
             length: 420,
-            warnDuration: 0.7,
-            fireDuration: 20,
+            warnDuration: 0.6,
+            fireDuration: 5.2,
             fadeDuration: 0.4,
             warnWidth: 2,
             fireWidth: 6,
@@ -493,41 +509,64 @@ Game.BOSS_DEFS = {
           { speaker: "メディ", text: "英傑護として最後まで戦いましょうか。" },
         ],
         params: {
+          // 「もっと豪華に」との指摘を受け、各フェーズを単一要素から複数要素の同時展開に強化し、
+          // 締めくくりの4フェーズ目として全要素を一度に展開する"climax"を追加した(理不尽な密度には
+          // せず、intervalは0.5〜2秒台を維持して間合いを確保している)。
           stages: [
             {
-              type: "ring",
+              // 二重リングの開花。
               duration: 4.5,
-              interval: 0.6,
-              count: 14,
-              rotStep: 0.12,
-              speed: 82,
-              bullet: { radius: 4, color: "rgba(140, 195, 255, 0.92)", glowColor: "rgba(170, 210, 255, 0.4)" },
+              interval: 0.5,
+              ring: { count: 16, rotStep: 0.13, speed: 84, bullet: { radius: 4, color: "rgba(140, 195, 255, 0.92)", glowColor: "rgba(170, 210, 255, 0.4)" } },
+              innerRing: { count: 10, rotStep: -0.22, speed: 136, bullet: { radius: 3.5, color: "rgba(255, 240, 210, 0.92)", glowColor: "rgba(255, 245, 225, 0.4)" } },
             },
             {
-              type: "aimed",
+              // 自機狙いの太い扇+背景の緩いリングを同時展開。
               duration: 3.5,
               interval: 0.5,
-              count: 3,
-              spread: 0.24,
-              speed: 175,
-              bullet: { radius: 4.5, color: "rgba(255, 120, 140, 0.92)", glowColor: "rgba(255, 160, 180, 0.4)" },
+              aimed: { count: 4, spread: 0.22, speed: 180, bullet: { radius: 4.5, color: "rgba(255, 120, 140, 0.92)", glowColor: "rgba(255, 160, 180, 0.4)" } },
+              ring: { count: 10, rotStep: 0.3, speed: 58, bullet: { radius: 4, color: "rgba(140, 195, 255, 0.7)", glowColor: "rgba(170, 210, 255, 0.3)" } },
             },
             {
-              type: "laser",
+              // 回転レーザーの束(前形態より本数を増強)。
               duration: 4,
-              interval: 2.4,
-              count: 3,
-              sweepSpeed: 0.16,
+              interval: 2.0,
               laser: {
-                length: 480,
-                warnDuration: 0.7,
-                fireDuration: 0.8,
-                fadeDuration: 0.3,
-                warnWidth: 2,
-                fireWidth: 6,
-                color: "rgba(215, 180, 255, 0.92)",
-                glowColor: "rgba(225, 195, 255, 0.4)",
-                warnColor: "rgba(255, 255, 255, 0.6)",
+                count: 4,
+                sweepSpeed: 0.18,
+                laser: {
+                  length: 480,
+                  warnDuration: 0.7,
+                  fireDuration: 0.8,
+                  fadeDuration: 0.3,
+                  warnWidth: 2,
+                  fireWidth: 6,
+                  color: "rgba(215, 180, 255, 0.92)",
+                  glowColor: "rgba(225, 195, 255, 0.4)",
+                  warnColor: "rgba(255, 255, 255, 0.6)",
+                },
+              },
+            },
+            {
+              // 締めの"climax"：リング/自機狙い/レーザーを同時展開する最も豪華な瞬間。
+              duration: 3.2,
+              interval: 0.6,
+              ring: { count: 14, rotStep: 0.18, speed: 90, bullet: { radius: 4, color: "rgba(140, 195, 255, 0.92)", glowColor: "rgba(170, 210, 255, 0.4)" } },
+              aimed: { count: 3, spread: 0.26, speed: 170, bullet: { radius: 4.5, color: "rgba(255, 120, 140, 0.92)", glowColor: "rgba(255, 160, 180, 0.4)" } },
+              laser: {
+                count: 3,
+                sweepSpeed: 0.22,
+                laser: {
+                  length: 460,
+                  warnDuration: 0.6,
+                  fireDuration: 0.7,
+                  fadeDuration: 0.3,
+                  warnWidth: 2,
+                  fireWidth: 6,
+                  color: "rgba(255, 240, 210, 0.92)",
+                  glowColor: "rgba(255, 245, 225, 0.4)",
+                  warnColor: "rgba(255, 255, 255, 0.65)",
+                },
               },
             },
           ],
@@ -633,20 +672,16 @@ Game.BOSS_PATTERNS = {
     });
   },
 
-  // リオネ最終形態：ゆっくり降りてくる透明(輪郭のみ)の弾。優しいが逃げ場を絞る。
-  // 扇の向きをゆっくり左右へ揺らし、両端の隙間が固定の安置にならないようにする。
+  // リオネ最終形態：全方位へ広がる花びら/雪のようなリング。少しずつ回転させながら
+  // 連続で出すことで、隣り合うリング同士が互い違いに重なって隙間を作らせない。
   clearDrops(boss, pattern, dt) {
     const params = pattern.params;
-    boss.patternState.timer = (boss.patternState.timer || 0) - dt;
-    if (boss.patternState.timer > 0) return;
-    boss.patternState.timer = params.interval;
-    boss.patternState.wobble = (boss.patternState.wobble || 0) + 0.35;
-
-    const base = Math.PI / 2 + Math.sin(boss.patternState.wobble) * 0.25;
-    for (let i = 0; i < params.count; i += 1) {
-      const offset = (i - (params.count - 1) / 2) * params.spreadAngle;
-      Game.fireAngledBullet(boss.x, boss.y, base + offset, params.speed, params);
-    }
+    const ps = boss.patternState;
+    ps.timer = (ps.timer || 0) - dt;
+    if (ps.timer > 0) return;
+    ps.timer = params.interval;
+    ps.rot = (ps.rot || 0) + params.rotStep;
+    Game.fireRing(boss.x, boss.y, params.count, ps.rot, params.speed, params);
   },
 
   // コーリア第1形態：自機へ向けて珊瑚型クラスタを撃つ。枝分かれした赤弾のかたまり。
@@ -860,13 +895,23 @@ Game.BOSS_PATTERNS = {
   tentacleLasers(boss, pattern, dt) {
     const params = pattern.params;
     const ps = boss.patternState;
-    if (ps.spawned) return;
-    ps.spawned = true;
+
+    // メディ自身をゆっくり左右に揺らし、レーザーの起点(=隙間の位置)を固定させない。
+    ps.swayPhase = (ps.swayPhase || 0) + dt;
+    ps.suppressSway = true;
+    boss.x = boss.baseX + Math.sin(ps.swayPhase * params.swaySpeed) * params.swayRange;
+
+    ps.timer = (ps.timer || 0) - dt;
+    if (ps.timer > 0) return;
+    ps.timer = params.interval;
+    ps.rot = (ps.rot || 0) + params.rotStep;
+    // 左右逆回転をやめ、全レーザーを同方向・等間隔にすることで隙間の幅を一定に保つ。
+    // 一定間隔で位相をずらした束を出し直すので、隙間の位置自体は時間とともに移動し続ける。
     for (let i = 0; i < params.count; i += 1) {
-      const angle = (Math.PI * 2 * i) / params.count + params.startOffset;
+      const angle = ps.rot + (Math.PI * 2 * i) / params.count;
       Game.fireLaser(boss.x, boss.y, angle, {
         ...params.laser,
-        angularVelocity: (i % 2 === 0 ? 1 : -1) * params.angularSpeed,
+        angularVelocity: params.angularSpeed,
         followBoss: true,
         bossRef: boss,
       });
@@ -874,7 +919,9 @@ Game.BOSS_PATTERNS = {
   },
 
   // メディ最終形態「PELAGIA」：1〜3形態の要素(リング/自機狙い/回転レーザー)を短い内部フェーズとして
-  // 順に繰り返す締めの一連。理不尽な密度にはせず、間合いを広めに取って綺麗に見せることを優先する。
+  // 順に繰り返す締めの一連。各フェーズは複数要素(ring/innerRing/aimed/laser)を同時展開でき、
+  // 最終フェーズは全要素を重ねる"climax"にして華やかさを出す。理不尽な密度にはせず、
+  // intervalは0.5秒以上を保って間合いを確保している。
   pelagiaFinale(boss, pattern, dt) {
     const params = pattern.params;
     const ps = boss.patternState;
@@ -889,20 +936,27 @@ Game.BOSS_PATTERNS = {
     const stageDef = params.stages[ps.stage];
     if (ps.fireTimer <= 0) {
       ps.fireTimer = stageDef.interval;
-      if (stageDef.type === "ring") {
-        ps.ringRot = (ps.ringRot || 0) + stageDef.rotStep;
-        Game.fireRing(boss.x, boss.y, stageDef.count, ps.ringRot, stageDef.speed, stageDef.bullet);
-      } else if (stageDef.type === "aimed") {
+
+      if (stageDef.ring) {
+        ps.ringRot = (ps.ringRot || 0) + stageDef.ring.rotStep;
+        Game.fireRing(boss.x, boss.y, stageDef.ring.count, ps.ringRot, stageDef.ring.speed, stageDef.ring.bullet);
+      }
+      if (stageDef.innerRing) {
+        ps.innerRingRot = (ps.innerRingRot || 0) + stageDef.innerRing.rotStep;
+        Game.fireRing(boss.x, boss.y, stageDef.innerRing.count, ps.innerRingRot, stageDef.innerRing.speed, stageDef.innerRing.bullet);
+      }
+      if (stageDef.aimed) {
         const p = Game.player;
         const angle = Math.atan2(p.y - boss.y, p.x - boss.x);
-        for (let i = 0; i < stageDef.count; i += 1) {
-          const offset = (i - (stageDef.count - 1) / 2) * stageDef.spread;
-          Game.fireAngledBullet(boss.x, boss.y, angle + offset, stageDef.speed, stageDef.bullet);
+        for (let i = 0; i < stageDef.aimed.count; i += 1) {
+          const offset = (i - (stageDef.aimed.count - 1) / 2) * stageDef.aimed.spread;
+          Game.fireAngledBullet(boss.x, boss.y, angle + offset, stageDef.aimed.speed, stageDef.aimed.bullet);
         }
-      } else if (stageDef.type === "laser") {
-        for (let i = 0; i < stageDef.count; i += 1) {
-          const angle = (Math.PI * 2 * i) / stageDef.count + ps.stageTimer * stageDef.sweepSpeed;
-          Game.fireLaser(boss.x, boss.y, angle, stageDef.laser);
+      }
+      if (stageDef.laser) {
+        for (let i = 0; i < stageDef.laser.count; i += 1) {
+          const angle = (Math.PI * 2 * i) / stageDef.laser.count + ps.stageTimer * stageDef.laser.sweepSpeed;
+          Game.fireLaser(boss.x, boss.y, angle, stageDef.laser.laser);
         }
       }
     }

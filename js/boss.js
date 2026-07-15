@@ -519,7 +519,9 @@ Game.BOSS_DEFS = {
           swaySpeed: 0.5,
           swayRange: 42,
           laser: {
-            length: 420,
+            // 画面最下部まで届かず足元に安置ができていたため、
+            // ワールド対角線(約735px)より長くして必ず画面外まで貫通させる。
+            length: 820,
             warnDuration: 0.6,
             fireDuration: 4.6,
             fadeDuration: 0.4,
@@ -566,7 +568,8 @@ Game.BOSS_DEFS = {
                 count: 4,
                 sweepSpeed: 0.18,
                 laser: {
-                  length: 480,
+                  // 回転中の斜めレーザーも端で途切れないよう画面外まで伸ばす。
+                  length: 820,
                   warnDuration: 0.7,
                   fireDuration: 0.8,
                   fadeDuration: 0.3,
@@ -588,7 +591,8 @@ Game.BOSS_DEFS = {
                 count: 3,
                 sweepSpeed: 0.22,
                 laser: {
-                  length: 460,
+                  // climaxでも最下部に安置を残さない長さに揃える。
+                  length: 820,
                   warnDuration: 0.6,
                   fireDuration: 0.7,
                   fadeDuration: 0.3,

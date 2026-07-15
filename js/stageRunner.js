@@ -6,6 +6,10 @@
 // DIALOGUE状態を経由させて先に流し切ってから本編を進める。DIALOGUE中は
 // game.jsのupdate()がPLAYING以外を素通りするため、このファイルのupdate系も
 // 自動的に止まる(=ボスや道中の時計も会話中は進まない)。
+//
+// waves→次フェーズ(=中ボス/ボスの会話)への遷移は、durationが経過していても
+// ザコ敵が画面上に残っている/湧き待ちの間は待つ(全滅または画面外退場を確認してから)。
+// 会話中に雑魚が動き回っているのは不自然、という指摘への対応。
 Game.stageRunner = {
   stage: null,
   phaseIndex: 0,
@@ -62,7 +66,8 @@ Game.updateStageRunner = function updateStageRunner(dt) {
         Game.spawnWave(runner.stage.waves[spawn.wave]);
       }
     });
-    if (runner.phaseTimer >= phase.duration) {
+    const allGruntsCleared = Game.grunts.length === 0 && Game.pendingGruntSpawns.length === 0;
+    if (runner.phaseTimer >= phase.duration && allGruntsCleared) {
       Game.enterStagePhase(runner.phaseIndex + 1);
     }
   } else if (phase.type === "miniboss" || phase.type === "boss") {

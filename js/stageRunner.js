@@ -15,6 +15,7 @@ Game.stageRunner = {
   phaseIndex: 0,
   phaseTimer: 0,
   spawnedFlags: null,
+  gruntsClearedTimer: 0,
 };
 
 Game.startStage = function startStage(stage) {
@@ -29,6 +30,7 @@ Game.enterStagePhase = function enterStagePhase(index) {
   runner.phaseIndex = index;
   runner.phaseTimer = 0;
   runner.spawnedFlags = new Set();
+  runner.gruntsClearedTimer = 0;
 
   if (index >= stage.phases.length) {
     // 最終面をSTORYでクリアした時だけ、通常のSTAGE_CLEARではなく真のエンディングへ分岐する。
@@ -68,7 +70,12 @@ Game.updateStageRunner = function updateStageRunner(dt) {
     });
     const allGruntsCleared = Game.grunts.length === 0 && Game.pendingGruntSpawns.length === 0;
     if (runner.phaseTimer >= phase.duration && allGruntsCleared) {
-      Game.enterStagePhase(runner.phaseIndex + 1);
+      runner.gruntsClearedTimer += dt;
+      if (runner.gruntsClearedTimer >= 2) {
+        Game.enterStagePhase(runner.phaseIndex + 1);
+      }
+    } else {
+      runner.gruntsClearedTimer = 0;
     }
   } else if (phase.type === "miniboss" || phase.type === "boss") {
     if (!Game.activeBoss) {
